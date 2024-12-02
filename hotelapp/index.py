@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, url_for
-from hotelmanagerapp import app
+from hotelapp import app
 
 
 @app.route('/')
