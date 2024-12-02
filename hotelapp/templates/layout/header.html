@@ -1,10 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+<nav class="navbar navbar-expand-sm bg-light navbar-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">
+      <img src="https://th.bing.com/th/id/OIP.4ayGNE280QGBKUSjtd6oqgHaHa?w=980&h=980&rs=1&pid=ImgDetMain" alt="Avatar Logo" style="width:40px;" class="rounded-pill">
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mynavbar">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="javascript:void(0)">Đặt phòng</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Về chúng tôi</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">Giới thiệu</a></li>
+            <li><a class="dropdown-item" href="#">Tin tức</a></li>
+          </ul>
+        </li>
+      </ul>
+      <form class="d-flex">
+        <a  class="btn btn-primary text-danger" style="  display: inline-block; padding: 10px 20px; border-radius: 5px;">Đăng Nhập</a>
+        <a href="{{ url_for('user_register')}}" class="btn btn-primary" style="background-color: #1cc3b2; color: white; border-color: #1cc3b2; text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 5px;">Đăng ký</a>
+      </form>
+    </div>
+  </div>
+</nav>
+</div>
