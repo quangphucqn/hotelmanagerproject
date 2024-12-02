@@ -1,3 +1,19 @@
+nav.navbar>div.container-fluid>div.collapse>ul>li:hover{
+    background-color: #343a40;
+    color: white;
+}
+nav.navbar>div.container-fluid>div.collapse>ul>li>a:hover{
+    color: white;
+}
+.btn-primary{
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    background-color: #1cc3b2;
+    color: white;
+}
+.btn-primary:hover{
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Đổ bóng khi hover */
+    transform: scale(1.05); /* Tăng nhẹ kích thước */
+}
 
 .site-footer {
     --bs-blue: #0d6efd;
@@ -89,4 +105,13 @@
 div.justify-content-between > div > button.btn{
     color: white;
     background-color: #1cc3b2;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
+div.justify-content-between > div > button.btn:hover{
+    color: #1cc3b2;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Đổ bóng khi hover */
+    transform: scale(1.02); /* Tăng nhẹ kích thước */
+}
+
+

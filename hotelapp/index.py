@@ -1,8 +1,12 @@
 from flask import render_template, request, redirect, url_for
 from hotelapp import app
+
 # from flask_login import login_user
 import utils
 import cloudinary.uploader
+=======
+
+
 @app.route('/')
 def home():
     return render_template('index.html')
