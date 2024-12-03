@@ -113,5 +113,11 @@ div.justify-content-between > div > button.btn:hover{
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Đổ bóng khi hover */
     transform: scale(1.02); /* Tăng nhẹ kích thước */
 }
+body>div.container>div.container.mt-3> div.flex-box-room>div.card.img-fluid{
+    margin: 0 2.5px 0 2.5px;
+}
+body>div.container>div.container.mt-3> div.flex-box-room>div.card.img-fluid> div.card-img-overlay>h4.card-title{
+    color: white;
+}
 
 
