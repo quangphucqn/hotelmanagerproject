@@ -11,6 +11,10 @@ import cloudinary.uploader
 def home():
     return render_template('index.html')
 
+# @app.route('/find_room')
+# def findroom():
+#     return render_template('find_room.html')
+
 
 @app.route('/register',methods=['GET','POST'])
 def user_register():

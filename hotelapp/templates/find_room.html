@@ -1,0 +1,112 @@
+{% extends 'layout/base.html' %}
+
+
+{% block title %} Tim phong {% endblock %}
+
+{% block content %}
+<!--Form search -->
+<div class="hotel-search-form mt-2">
+                    <form action="find_room.html" method="get">
+                        <div class="row justify-content-between align-items-end">
+                            <div class="col-6 col-md-2 col-lg-3">
+                                <label for="checkIn">Check In</label>
+                                <input type="date" class="form-control" id="checkIn" name="checkin-date">
+                            </div>
+                            <div class="col-6 col-md-2 col-lg-3">
+                                <label for="checkOut">Check Out</label>
+                                <input type="date" class="form-control" id="checkOut" name="checkout-date">
+                            </div>
+                             <div class="col-4 col-md-1">
+                                <label for="room">Room</label>
+                                <select name="room" id="room" class="form-select">
+                                  <option>1</option>
+                                  <option>2</option>
+                                  <option>3</option>
+                                  <option>4</option>
+                                </select>
+                            </div>
+                            <div class="col-4 col-md-1">
+                                <label for="room-type">Room Type</label>
+                                <select name="room-type" id="room-type" class="form-select">
+                                  <option>Classic</option>
+                                  <option>Penthouse</option>
+                                  <option>SeaView</option>
+                                </select>
+                            </div>
+                            <div class="col-4 col-md-1">
+                                <label for="adults">Adult</label>
+                                <select name="adults" id="adults" class="form-select">
+                                  <option>1</option>
+                                  <option>2</option>
+                                  <option>3</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <button type="submit" class="form-control btn roberto-btn w-100">
+                                    Check Availability
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+</div>
+<!--End Form search  -->
+<!-- Room show-->
+<div class="room-show mt-5">
+    <div class="card mb-3" style="width: 100%;">
+      <div class="row g-0">
+        <div class="col-md-4">
+          <img src="https://getwallpapers.com/wallpaper/full/e/0/7/1111915-widescreen-maldives-wallpaper-1920x1080-full-hd.jpg" class="img-fluid rounded-start" alt="...">
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <h5 class="card-title">Room Name</h5>
+            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+            <p class="card-text"><small class="text-muted">2 <i class="fa-solid fa-user"></i></small></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card mb-3" style="width: 100%;">
+      <div class="row g-0">
+        <div class="col-md-4">
+          <img src="https://getwallpapers.com/wallpaper/full/e/0/7/1111915-widescreen-maldives-wallpaper-1920x1080-full-hd.jpg" class="img-fluid rounded-start" alt="...">
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <h5 class="card-title">Room Name</h5>
+            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+            <p class="card-text"><small class="text-muted">2 <i class="fa-solid fa-user"></i></small></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card mb-3" style="width: 100%;">
+      <div class="row g-0">
+        <div class="col-md-4">
+          <img src="https://getwallpapers.com/wallpaper/full/e/0/7/1111915-widescreen-maldives-wallpaper-1920x1080-full-hd.jpg" class="img-fluid rounded-start" alt="...">
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <h5 class="card-title">Room Name</h5>
+            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+            <p class="card-text"><small class="text-muted">3 <i class="fa-solid fa-user"></i></small></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card mb-3" style="width: 100%;">
+      <div class="row g-0">
+        <div class="col-md-4">
+          <img src="https://getwallpapers.com/wallpaper/full/e/0/7/1111915-widescreen-maldives-wallpaper-1920x1080-full-hd.jpg" class="img-fluid rounded-start" alt="...">
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <h5 class="card-title">Room Name</h5>
+            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+            <p class="card-text"><small class="text-muted">3 <i class="fa-solid fa-user"></i></small></p>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+{% endblock %}

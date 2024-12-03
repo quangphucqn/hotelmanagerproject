@@ -15,6 +15,7 @@
     <button type="button" data-bs-target="#demo" data-bs-slide-to="0" class="active"></button>
     <button type="button" data-bs-target="#demo" data-bs-slide-to="1"></button>
     <button type="button" data-bs-target="#demo" data-bs-slide-to="2"></button>
+    <button type="button" data-bs-target="#demo" data-bs-slide-to="3"></button>
   </div>
 
   <!-- The slideshow/carousel -->
@@ -40,6 +41,13 @@
         <p>We love the Big Apple!</p>
       </div>
     </div>
+    <div class="carousel-item">
+      <img src="https://cdn.wallpapersafari.com/70/55/qu2Yvf.jpg" alt="Ha Long Bay" class="d-block" style="width:100%">
+      <div class="carousel-caption">
+        <h3>Ha Long Bay</h3>
+        <p>Welcom to VietNam</p>
+      </div>
+    </div>
   </div>
 
   <!-- Left and right controls/icons -->
@@ -52,7 +60,7 @@
 </div>
 <!--Form search -->
 <div class="hotel-search-form mt-2">
-                    <form action="#" method="post">
+                    <form action="find_room.html" method="get">
                         <div class="row justify-content-between align-items-end">
                             <div class="col-6 col-md-2 col-lg-3">
                                 <label for="checkIn">Check In</label>
@@ -62,7 +70,7 @@
                                 <label for="checkOut">Check Out</label>
                                 <input type="date" class="form-control" id="checkOut" name="checkout-date">
                             </div>
-                            <div class="col-4 col-md-1">
+                             <div class="col-4 col-md-1">
                                 <label for="room">Room</label>
                                 <select name="room" id="room" class="form-select">
                                   <option>1</option>
@@ -72,25 +80,60 @@
                                 </select>
                             </div>
                             <div class="col-4 col-md-1">
+                                <label for="room-type">Room Type</label>
+                                <select name="room-type" id="room-type" class="form-select">
+                                  <option>Classic</option>
+                                  <option>Penthouse</option>
+                                  <option>SeaView</option>
+                                </select>
+                            </div>
+                            <div class="col-4 col-md-1">
                                 <label for="adults">Adult</label>
                                 <select name="adults" id="adults" class="form-select">
                                   <option>1</option>
                                   <option>2</option>
                                   <option>3</option>
-                                  <option>4</option>
                                 </select>
                             </div>
                             <div class="col-12 col-md-3">
-                                <button type="submit" class="form-control btn roberto-btn w-100">Check Availability</button>
+                                <button type="submit" class="form-control btn roberto-btn w-100">
+                                    Check Availability
+                                </button>
                             </div>
                         </div>
                     </form>
-                </div>
+</div>
 <!--End Form search  -->
+<!-- Room-->
+<div class="container mt-3 mb-3">
+  <h2>ROOM</h2>
+  <p>Relax privately in a pure space close to nature with your loved ones.</p>
+  <div class="flex-box-room" style="display: flex">
+  <div class="card img-fluid" style="width:500px">
+    <img class="card-img-top" src="https://cdn-anleb.nitrocdn.com/tCRkDCsbycMpcUNHfNUFRoXsIImxjOzf/assets/images/optimized/rev-3c891a3/www.danang.intercontinental.com/wp-content/uploads/2022/10/2BR-Rock-Villa-terrace-and-plunge-pool-1024x683.jpg" alt="Card image" style="width:100%">
+    <div class="card-img-overlay">
+      <h4 class="card-title">Classic Sea View Room</h4>
+      <a href="#" class="btn btn-primary">Đặt phòng ngay</a>
+    </div>
+  </div>
+ <div class="card img-fluid" style="width:500px">
+    <img class="card-img-top" src="https://cdn-anleb.nitrocdn.com/tCRkDCsbycMpcUNHfNUFRoXsIImxjOzf/assets/images/optimized/rev-3c891a3/www.danang.intercontinental.com/wp-content/uploads/2022/10/Resort-Classic-Panoramic-bedroom-web-1024x683.jpg" alt="Card image" style="width:100%">
+    <div class="card-img-overlay">
+      <h4 class="card-title">Panoramic Sea View Room</h4>
+      <a href="#" class="btn btn-primary">Đặt phòng ngay</a>
+    </div>
+  </div>
+ <div class="card img-fluid" style="width:500px">
+    <img class="card-img-top" src="https://cdn-anleb.nitrocdn.com/tCRkDCsbycMpcUNHfNUFRoXsIImxjOzf/assets/images/optimized/rev-3c891a3/www.danang.intercontinental.com/wp-content/uploads/2022/10/Rock-Villa-terrace-and-pool-1024x683.jpg" alt="Card image" style="width:100%">
+    <div class="card-img-overlay">
+      <h4 class="card-title">Penthouse with Sea View</h4>
+      <a href="#" class="btn btn-primary">Đặt phòng ngay</a>
+    </div>
+  </div>
+  </div>
+</div>
 
-<!-- Footer-->
 
-<!-- End footer-->
 {% endblock %}
 
 
