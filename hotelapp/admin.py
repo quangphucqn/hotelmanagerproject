@@ -46,7 +46,7 @@ class MyAdminIndex(AdminIndexView):
 
 
 admin = Admin(app,
-                name="E-commerce Administration",
+                name="Hotel Administration",
                 template_mode='bootstrap4',
                 index_view=MyAdminIndex())
 admin.add_view(RoomView(Room,db.session))

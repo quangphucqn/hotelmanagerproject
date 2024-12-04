@@ -5,6 +5,7 @@ from flask_login import login_user,logout_user
 import utils
 import cloudinary.uploader
 
+from hotelapp.models import User
 
 
 @app.route('/')
@@ -30,7 +31,9 @@ def user_register():
         avatar_path=None
 
         try:
-            if password.strip().__eq__(confirm.strip()):
+            existing_user = User.query.filter(User.username == username.strip()).first()
+
+            if password.strip().__eq__(confirm.strip()) and not existing_user:
                 avatar=request.files.get('avatar')
                 if avatar:
                     res= cloudinary.uploader.upload(avatar)
@@ -40,6 +43,7 @@ def user_register():
                 return redirect(url_for('user_login'))
             else:
                 err_msg='Mat khau KHONG khop!!!'
+                err_msg="Username đã được đăng ký, vui lòng chọn username khác."
         except Exception as ex:
             err_msg='He thong dang co loi: ' + str(ex)
 
@@ -65,6 +69,27 @@ def user_login():
             err_msg = 'Hệ thống đang có lỗi: ' + str(ex)
 
     return render_template('login.html', err_msg=err_msg)
+
+@app.route('/admin_login',methods=['POST'])
+def login_admin():
+            username = request.form.get('username')
+            password = request.form.get('password')
+
+            user = utils.check_login(username=username,
+                                     password=password,
+                                     role=UserRole.ADMIN)
+            if user:
+                login_user(user=user)
+
+            return redirect('/admin')
+
+
+
+@app.route('/user_logout')
+def user_logout():
+    logout_user()
+    return redirect(url_for('user_login'))
+
 
 @login.user_loader
 def user_load(user_id):
