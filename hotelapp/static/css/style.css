@@ -1,0 +1,123 @@
+nav.navbar>div.container-fluid>div.collapse>ul>li:hover{
+    background-color: #343a40;
+    color: white;
+}
+nav.navbar>div.container-fluid>div.collapse>ul>li>a:hover{
+    color: white;
+}
+.btn-primary{
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    background-color: #1cc3b2;
+    color: white;
+}
+.btn-primary:hover{
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Đổ bóng khi hover */
+    transform: scale(1.05); /* Tăng nhẹ kích thước */
+}
+
+.site-footer {
+    --bs-blue: #0d6efd;
+    --bs-indigo: #6610f2;
+    --bs-purple: #6f42c1;
+    --bs-pink: #d63384;
+    --bs-red: #dc3545;
+    --bs-orange: #fd7e14;
+    --bs-yellow: #ffc107;
+    --bs-green: #198754;
+    --bs-teal: #20c997;
+    --bs-cyan: #0dcaf0;
+    --bs-white: #fff;
+    --bs-gray: #6c757d;
+    --bs-gray-dark: #343a40;
+    --bs-primary: #00917c;
+    --bs-secondary: #52565e;
+    --bs-success: #198754;
+    --bs-info: #0dcaf0;
+    --bs-warning: #ffc107;
+    --bs-danger: #dc3545;
+    --bs-light: #f8f9fa;
+    --bs-dark: #212529;
+    --bs-font-sans-serif: "Roboto", sans-serif;
+    --bs-font-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --bs-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    color: rgba(0, 0, 0, 0.5) !important;
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    box-sizing: border-box;
+    background-color: #f8f9fa !important;
+    padding: 70px 0;
+}
+
+.site-footer ul li a {
+    text-decoration: none;
+}
+.hotel-search-form{
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    --blue: #007bff;
+    --indigo: #6610f2;
+    --purple: #6f42c1;
+    --pink: #e83e8c;
+    --red: #dc3545;
+    --orange: #fd7e14;
+    --yellow: #ffc107;
+    --green: #28a745;
+    --teal: #20c997;
+    --cyan: #17a2b8;
+    --white: #fff;
+    --gray: #6c757d;
+    --gray-dark: #343a40;
+    --primary: #007bff;
+    --secondary: #6c757d;
+    --success: #28a745;
+    --info: #17a2b8;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --light: #f8f9fa;
+    --dark: #343a40;
+    --breakpoint-xs: 0;
+    --breakpoint-sm: 576px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 992px;
+    --breakpoint-xl: 1200px;
+    --font-family-sans-serif: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    --font-family-monospace: SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    line-height: 1.5;
+    color: #212529;
+    text-align: left;
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    box-sizing: border-box;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    box-shadow: 0 2px 15px 1px rgba(0, 0, 0, 0.15);
+    padding: 40px 40px 40px 40px;
+    border-radius: 5px;
+    background-color: #ffffff;
+}
+div.justify-content-between > div > button.btn{
+    color: white;
+    background-color: #1cc3b2;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+div.justify-content-between > div > button.btn:hover{
+    color: #1cc3b2;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Đổ bóng khi hover */
+    transform: scale(1.02); /* Tăng nhẹ kích thước */
+}
+body>div.container>div.container.mt-3> div.flex-box-room>div.card.img-fluid{
+    margin: 0 2.5px 0 2.5px;
+}
+body>div.container>div.container.mt-3> div.flex-box-room>div.card.img-fluid> div.card-img-overlay>h4.card-title{
+    color: white;
+}
+
+
