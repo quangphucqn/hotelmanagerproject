@@ -12,7 +12,7 @@ import utils
 
 class AuthenticatedModelView(ModelView):
     def is_accessible(self):
-        return current_user.is_authenticated and current_user.user_role.__eq__(UserRole.ADMIN)
+        return current_user.is_authenticated and current_user.user_role.role_name=='ADMIN'
 
 
 class RoomView(AuthenticatedModelView):
@@ -34,7 +34,7 @@ class StatsView(BaseView):
     def index(self):
         pass
     def is_accessible(self):
-        return current_user.is_authenticated and current_user.user_role.__eq__(UserRole.ADMIN)
+        return current_user.is_authenticated and current_user.user_role.role_name=='ADMIN'
 
 class MyAdminIndex(AdminIndexView):
     @expose('/')

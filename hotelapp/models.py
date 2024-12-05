@@ -1,5 +1,5 @@
 from ctypes.wintypes import DOUBLE
-from sqlalchemy import Column, Integer, Enum, String, Float, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, Enum, String, Float, Boolean, DateTime,Date, ForeignKey
 from hotelapp import db, app
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -7,13 +7,21 @@ from flask_login import UserMixin
 from enum import Enum as UserEnum
 from enum import Enum as NationalEnum
 
-class UserRole(UserEnum):
-    ADMIN = 1
-    USER = 2
+# class UserRole(UserEnum):
+#     ADMIN = 1
+#     USER = 2
+
+
 
 class BaseModel(db.Model):
     __abstract__ = True
     id = Column(Integer, primary_key=True, autoincrement=True)
+
+class UserRole(BaseModel):
+    __tablename__ = 'user_role'
+    role_name = Column(String(45), nullable=False, unique=True)
+    def __str__(self):
+        return self.role_name
 
 class National(BaseModel):
     __tablename__ = 'national'
@@ -58,17 +66,20 @@ class User(BaseModel, UserMixin):
     password = Column(String(45), nullable=False)
     name = Column(String(45), nullable=False)
     email = Column(String(45))
-    birthday = Column(DateTime)
+    birthday = Column(Date, nullable=False)
     active = Column(Boolean, default=True)
     avatar = Column(String(100))
-    user_role_id = Column(Integer, ForeignKey('user_role.id'), nullable=False, default=UserRole.USER)
+    user_role_id = Column(Integer, ForeignKey('user_role.id'))
     national_id = Column(Integer, ForeignKey('national.id'), nullable=False)
     bills = relationship("Bill", backref="user", lazy=True)
     rental_notes = relationship("RentalNote", backref="user", lazy=True)
     booking_notes = relationship("BookingNote", backref="user", lazy=True)
 
+    user_role = relationship("UserRole", backref="user", lazy=True)
+
     def __str__(self):
         return self.name
+
 
 
 class RoomType(BaseModel):
@@ -107,6 +118,13 @@ class BookingNoteDetails(BaseModel):
 
 if __name__ == '__main__':
     with app.app_context():
+
         db.create_all()
+        nationals = National.query.all()
+        users=UserRole.query.all()
+        for u in users:
+            print(u.role_name)
+        for national in nationals:
+            print(national.id, national.country)
         db.session.commit()
 
