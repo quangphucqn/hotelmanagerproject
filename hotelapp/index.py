@@ -10,12 +10,14 @@ from hotelapp.models import User
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    rt = utils.load_room_type()
+    return render_template('index.html',roomtypes=rt)
 
 
 @app.route('/find_room',methods=['GET','POST'])
 def find_room():
-     return render_template('find_room.html')
+    rt= utils.load_room_type()
+    return render_template('find_room.html',roomtypes=rt)
 
 
 @app.route('/register', methods=['GET', 'POST'])

@@ -9,6 +9,13 @@ import hashlib
 def load_nationals():
     return National.query.all()
 
+def load_room_type():
+    return RoomType.query.order_by('id').all()
+
+def load_room():
+    return Room.query.all()
+
+
 def add_user(name,username,password,**kwargs):
     password=hashlib.md5(password.strip().encode('utf-8')).hexdigest()
     user_role = UserRole.query.filter_by(role_name="USER").first()
@@ -42,6 +49,6 @@ def get_rooms():
         RoomType.room_type_name,
         RoomStatus.status_name,
         RoomType.price
-    ).join(RoomType, Room.room_type_id == RoomType.id) \
+    ).join(RoomType, Room.room_type_id == RoomType.id)
      .join(RoomStatus, Room.room_status_id == RoomStatus.id)
         .join(National,Room.na).all())
