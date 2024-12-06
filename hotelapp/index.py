@@ -86,12 +86,14 @@ def login_admin():
     password = request.form.get('password')
 
     user = utils.check_login(username=username,
-                             password=password,
-                             role_name="ADMIN")
+                                 password=password,
+                                 role_name="ADMIN")
 
     if user:
-        login_user(user=user)
-        return redirect('/admin')
+            login_user(user=user)
+            return redirect('/admin')
+    else:
+            return redirect(url_for('login_admin'))
 
 
 @app.route('/user_logout')

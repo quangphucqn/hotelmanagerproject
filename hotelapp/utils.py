@@ -22,7 +22,7 @@ def add_user(name,username,password,**kwargs):
                 user_role_id =user_role.id
               )
 
-def check_login(username, password, role_name="USER"):
+def check_login(username, password, role_name=UserRole.role_name=='CUSTOMER'):
     if username and password:
         password = hashlib.md5(password.strip().encode('utf-8')).hexdigest()
 
@@ -36,3 +36,12 @@ def check_login(username, password, role_name="USER"):
 
 def get_user_by_id(user_id):
     return User.query.get(user_id)
+def get_rooms():
+    return (db.session.query(
+        Room.id,
+        RoomType.room_type_name,
+        RoomStatus.status_name,
+        RoomType.price
+    ).join(RoomType, Room.room_type_id == RoomType.id) \
+     .join(RoomStatus, Room.room_status_id == RoomStatus.id)
+        .join(National,Room.na).all())
