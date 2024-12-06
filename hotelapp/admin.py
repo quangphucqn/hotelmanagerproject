@@ -5,7 +5,7 @@ from hotelapp import app,db
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import BaseView,expose,AdminIndexView
-from hotelapp.models import RoomStatus,RoomType,Room,UserRole
+from hotelapp.models import Room_status,Room_type,Room,User_role
 from flask_login import current_user,logout_user
 from flask import redirect,request
 import utils
@@ -56,6 +56,16 @@ class LogoutView(BaseView):
         logout_user()
         return redirect('/admin')
 
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+class StatsView(BaseView):
+    @expose('/')
+    def index(self):
+        pass
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.user_role.role_name=='ADMIN'
+
 class MyAdminIndex(AdminIndexView):
     @expose('/')
     def index(self):
@@ -63,8 +73,6 @@ class MyAdminIndex(AdminIndexView):
         return self.render('admin/index.html')
                            # stats=utils.category_stats())
 admin = Admin(app, name="Hotel Administration", template_mode='bootstrap4')
-
-# Đăng ký các view quản lý loại phòng và phòng
 admin.add_view(RoomView(Room, db.session, name="Quản lý phòng"))
 admin.add_view(RoomTypeView(RoomType,db.session,name="Quản lý loại phòng"))
 admin.add_view(LogoutView(name='Đăng xuất'))
