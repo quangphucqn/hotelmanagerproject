@@ -77,7 +77,7 @@ def login_admin():
 
             user = utils.check_login(username=username,
                                      password=password,
-                                     role=UserRole.ADMIN)
+                                     role=User_role.ADMIN)
             if user:
                 login_user(user=user)
 

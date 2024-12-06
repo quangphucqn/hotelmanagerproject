@@ -3,7 +3,7 @@ from hotelapp import app,db
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import BaseView,expose,AdminIndexView
-from hotelapp.models import RoomStatus,RoomType,Room,UserRole
+from hotelapp.models import Room_status,Room_type,Room,User_role
 from flask_login import current_user,logout_user
 from flask import redirect,request
 import utils
@@ -12,7 +12,7 @@ import utils
 
 class AuthenticatedModelView(ModelView):
     def is_accessible(self):
-        return current_user.is_authenticated and current_user.user_role.__eq__(UserRole.ADMIN)
+        return current_user.is_authenticated and current_user.user_role.__eq__(User_role.ADMIN)
 
 
 class RoomView(AuthenticatedModelView):
@@ -34,7 +34,7 @@ class StatsView(BaseView):
     def index(self):
         pass
     def is_accessible(self):
-        return current_user.is_authenticated and current_user.user_role.__eq__(UserRole.ADMIN)
+        return current_user.is_authenticated and current_user.user_role.__eq__(User_role.ADMIN)
 
 class MyAdminIndex(AdminIndexView):
     @expose('/')

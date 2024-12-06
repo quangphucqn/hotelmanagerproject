@@ -1,5 +1,5 @@
 from hotelapp import app,db
-from hotelapp.models import User, Room,RoomType,RoomStatus,UserRole
+from hotelapp.models import User, Room,Room_type,Room_status,User_role
 from flask_login import current_user
 from sqlalchemy import func
 from sqlalchemy.sql import extract
@@ -20,7 +20,7 @@ def add_user(name,username,password,**kwargs):
     db.session.commit()
 
 
-def check_login(username,password,role=UserRole.USER):
+def check_login(username,password,role=User_role.role_name):
     if username and password:
         password=hashlib.md5(password.strip().encode('utf-8')).hexdigest()
 
