@@ -1,3 +1,5 @@
+import datetime
+
 from flask import render_template, request, redirect, url_for
 from hotelapp import app, login
 
@@ -113,6 +115,34 @@ def common_response():
 @login.user_loader
 def user_load(user_id):
     return utils.get_user_by_id(user_id=user_id)
+@app.route('/room_list')
+def room_list(room_id):
+    room=utils.get_room_by_id(room_id)
+    return render_template('room_list.html',room=room)
+    # checkin_date = request.args.get('checkin_date', None)
+    # checkout_date = request.args.get('checkout_date', None)
+    # status_name = request.args.get('status')
+    #
+    # if checkin_date:
+    #     checkin_date = datetime.strptime(checkin_date, '%Y-%m-%d')
+    # if checkout_date:
+    #     checkout_date = datetime.strptime(checkout_date, '%Y-%m-%d')
+    #
+    # if status_name == 'daDat':
+    #     rooms = utils.load_booked(checkin_date, checkout_date)
+    # elif status_name == 'dangThue':
+    #     rooms = utils.load_booking(checkin_date, checkout_date)
+    # elif status_name == 'trong':
+    #     rooms = utils.load_empty(checkin_date, checkout_date)
+    # else:
+    #     rooms = utils.load_all(checkin_date, checkout_date)
+    #
+    # return render_template('room_list.html', rooms=rooms)
+
+
+
+
+
 
 
 if __name__ == '__main__':
