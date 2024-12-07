@@ -5,7 +5,7 @@ from hotelapp import app,db
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import BaseView,expose,AdminIndexView
-from hotelapp.models import Room_status,Room_type,Room,User_role
+from hotelapp.models import RoomStatus,RoomType,Room,UserRole
 from flask_login import current_user,logout_user
 from flask import redirect,request
 import utils

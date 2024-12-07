@@ -9,7 +9,17 @@ import hashlib
 def load_nationals():
     return National.query.all()
 
+<<<<<<< HEAD
 #Thêm người dùng
+=======
+def load_room_type():
+    return RoomType.query.order_by('id').all()
+
+def load_room():
+    return Room.query.all()
+
+
+>>>>>>> d6edafac9f23d74294b077e7df62924882167553
 def add_user(name,username,password,**kwargs):
     password=hashlib.md5(password.strip().encode('utf-8')).hexdigest()
     user_role = UserRole.query.filter_by(role_name="USER").first()

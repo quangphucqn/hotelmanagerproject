@@ -10,12 +10,14 @@ from hotelapp.models import User
 #Trang chủ
 @app.route('/')
 def home():
-    return render_template('index.html')
+    rt = utils.load_room_type()
+    return render_template('index.html',roomtypes=rt)
 
 #Tìm phòng
 @app.route('/find_room',methods=['GET','POST'])
 def find_room():
-     return render_template('find_room.html')
+    rt= utils.load_room_type()
+    return render_template('find_room.html',roomtypes=rt)
 
 #Đăng ký
 @app.route('/register', methods=['GET', 'POST'])
