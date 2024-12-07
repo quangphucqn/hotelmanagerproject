@@ -60,7 +60,7 @@
 </div>
 <!--Form search -->
 <div class="hotel-search-form mt-2">
-                    <form action="find_room.html" method="get">
+                    <form action="{{ url_for('find_room') }}" method="get">
                         <div class="row justify-content-between align-items-end">
                             <div class="col-6 col-md-2 col-lg-3">
                                 <label for="checkIn">Check In</label>
@@ -80,14 +80,6 @@
                                 </select>
                             </div>
                             <div class="col-4 col-md-1">
-                                <label for="room-type">Room Type</label>
-                                <select name="room-type" id="room-type" class="form-select">
-                                  <option>Classic</option>
-                                  <option>Penthouse</option>
-                                  <option>SeaView</option>
-                                </select>
-                            </div>
-                            <div class="col-4 col-md-1">
                                 <label for="adults">Adult</label>
                                 <select name="adults" id="adults" class="form-select">
                                   <option>1</option>
@@ -96,9 +88,9 @@
                                 </select>
                             </div>
                             <div class="col-12 col-md-3">
-                                <button type="submit" class="form-control btn roberto-btn w-100">
-                                    Check Availability
-                                </button>
+                                <form action="{{ url_for('find_room') }}" method="POST">
+                                     <button type="submit" class="form-control btn roberto-btn w-100">Check Availability</button>
+                                </form>
                             </div>
                         </div>
                     </form>
@@ -109,27 +101,15 @@
   <h2>ROOM</h2>
   <p>Relax privately in a pure space close to nature with your loved ones.</p>
   <div class="flex-box-room" style="display: flex">
-  <div class="card img-fluid" style="width:500px">
-    <img class="card-img-top" src="https://cdn-anleb.nitrocdn.com/tCRkDCsbycMpcUNHfNUFRoXsIImxjOzf/assets/images/optimized/rev-3c891a3/www.danang.intercontinental.com/wp-content/uploads/2022/10/2BR-Rock-Villa-terrace-and-plunge-pool-1024x683.jpg" alt="Card image" style="width:100%">
-    <div class="card-img-overlay">
-      <h4 class="card-title">Classic Sea View Room</h4>
-      <a href="#" class="btn btn-primary">Đặt phòng ngay</a>
-    </div>
-  </div>
- <div class="card img-fluid" style="width:500px">
-    <img class="card-img-top" src="https://cdn-anleb.nitrocdn.com/tCRkDCsbycMpcUNHfNUFRoXsIImxjOzf/assets/images/optimized/rev-3c891a3/www.danang.intercontinental.com/wp-content/uploads/2022/10/Resort-Classic-Panoramic-bedroom-web-1024x683.jpg" alt="Card image" style="width:100%">
-    <div class="card-img-overlay">
-      <h4 class="card-title">Panoramic Sea View Room</h4>
-      <a href="#" class="btn btn-primary">Đặt phòng ngay</a>
-    </div>
-  </div>
- <div class="card img-fluid" style="width:500px">
-    <img class="card-img-top" src="https://cdn-anleb.nitrocdn.com/tCRkDCsbycMpcUNHfNUFRoXsIImxjOzf/assets/images/optimized/rev-3c891a3/www.danang.intercontinental.com/wp-content/uploads/2022/10/Rock-Villa-terrace-and-pool-1024x683.jpg" alt="Card image" style="width:100%">
-    <div class="card-img-overlay">
-      <h4 class="card-title">Penthouse with Sea View</h4>
-      <a href="#" class="btn btn-primary">Đặt phòng ngay</a>
-    </div>
-  </div>
+      {% for rts in roomtypes %}
+          <div class="card img-fluid" style="width:500px">
+            <img class="card-img-top" src="https://cdn-anleb.nitrocdn.com/tCRkDCsbycMpcUNHfNUFRoXsIImxjOzf/assets/images/optimized/rev-3c891a3/www.danang.intercontinental.com/wp-content/uploads/2022/10/2BR-Rock-Villa-terrace-and-plunge-pool-1024x683.jpg" alt="Card image" style="width:100%">
+            <div class="card-img-overlay">
+              <h4 class="card-title">{{ rts.room_type_name }}</h4>
+              <a href="#" class="btn btn-primary">Xem thêm</a>
+            </div>
+          </div>
+      {% endfor %}
   </div>
 </div>
 
