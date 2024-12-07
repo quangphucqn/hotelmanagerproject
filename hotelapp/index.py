@@ -7,17 +7,17 @@ import cloudinary.uploader
 
 from hotelapp.models import User
 
-
+#Trang chủ
 @app.route('/')
 def home():
     return render_template('index.html')
 
-
+#Tìm phòng
 @app.route('/find_room',methods=['GET','POST'])
 def find_room():
      return render_template('find_room.html')
 
-
+#Đăng ký
 @app.route('/register', methods=['GET', 'POST'])
 def user_register():
     err_msg = ""
@@ -58,7 +58,7 @@ def user_register():
 
 
     return render_template('register.html', err_msg=err_msg)
-
+#Đăng nhập trang người dùng
 @app.route('/user_login', methods=['GET', 'POST'])
 def user_login():
     err_msg = ""
@@ -79,7 +79,7 @@ def user_login():
             err_msg = 'Hệ thống đang có lỗi: ' + str(ex)
 
     return render_template('login.html', err_msg=err_msg)
-
+#Đăng nhập admin
 @app.route('/admin_login', methods=['POST'])
 def login_admin():
     username = request.form.get('username')
@@ -95,7 +95,7 @@ def login_admin():
     else:
             return redirect(url_for('login_admin'))
 
-
+#Đăng xuất
 @app.route('/user_logout')
 def user_logout():
     logout_user()
@@ -107,7 +107,7 @@ def common_response():
       'nationals': utils.load_nationals()
     }
 
-
+#Tải thông tin người dùng
 @login.user_loader
 def user_load(user_id):
     return utils.get_user_by_id(user_id=user_id)
