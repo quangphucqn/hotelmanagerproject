@@ -2,6 +2,8 @@ from hotelapp import app,db
 from hotelapp.models import User, Room, RoomType, RoomStatus, UserRole, National, BookingNote, BookingNoteDetails, Bill, \
     RentalNote
 from flask_login import current_user
+from flask import render_template, session, redirect, url_for, flash, request
+from datetime import datetime
 from sqlalchemy import func
 from sqlalchemy.sql import extract
 import hashlib
@@ -73,50 +75,93 @@ def get_soluong_RoomType(room_id):
     return soluong
 
 
+def room_list():
+    # Join bảng room với room_type và room_status
+    rooms = db.session.query(Room, RoomType, RoomStatus).join(
+        RoomType, Room.room_type_id == RoomType.id
+    ).join(
+        RoomStatus, Room.room_status_id == RoomStatus.id
+    ).all()
+    return rooms
+
+# Lấy danh sách phòng trống
+def find_room(checkin_date, checkout_date, num_rooms_requested):
+    # Truy vấn phòng trống theo loại và trạng thái
+    rooms = db.session.query(Room, RoomType, RoomStatus).join(
+        RoomType, Room.room_type_id == RoomType.id
+    ).join(
+        RoomStatus, Room.room_status_id == RoomStatus.id
+    ).filter(
+        RoomStatus.status_name == 'trống'
+    ).filter(
+        ~db.session.query(BookingNoteDetails).filter(
+            BookingNoteDetails.room_id == Room.id,
+            (BookingNoteDetails.checkin_date < checkout_date) &
+            (BookingNoteDetails.checkout_date > checkin_date)
+        ).exists()
+    ).all()
+
+    # Đếm số phòng trống theo loại
+    available_rooms_by_type = {}
+    for room, room_type, room_status in rooms:
+        if room_type.id not in available_rooms_by_type:
+            available_rooms_by_type[room_type.id] = {
+                'room_type': room_type,
+                'available_count': 0
+            }
+        available_rooms_by_type[room_type.id]['available_count'] += 1
+
+    # Lọc các loại phòng có đủ số lượng phòng trống
+    available_rooms = []
+    for room, room_type, room_status in rooms:
+        if available_rooms_by_type[room_type.id]['available_count'] >= num_rooms_requested:
+            available_rooms.append((room, room_type, room_status))
+
+    return available_rooms
 
 # PHẦN LOAD DANH SACH PHÒNG
 # Lấy danh sách phòng đã đặt
 
-ROOM_STATUS_WAITING = 'Chờ nhận phòng'
-ROOM_STATUS_EMPTY = 'Trống'
-ROOM_STATUS_BOOKED = 'Đã đặt'
-ROOM_STATUS_RENTED = 'Đang thuê'
-
-def load_booked(checkin_date=None, checkout_date=None):
-    if checkin_date and checkout_date:
-        query = db.session.query(Room.id, Room.room_type_id, ROOM_STATUS_BOOKED) \
-            .join(BookingNoteDetails, BookingNoteDetails.room_id == Room.id) \
-            .filter(BookingNoteDetails.checkin_date.between(checkin_date, checkout_date) |
-                    BookingNoteDetails.checkout_date.between(checkin_date, checkout_date))
-        return query.all()
-    return []
-
-# Lấy danh sách phòng đang thuê
-def load_booking(checkin_date=None, checkout_date=None):
-    if checkin_date and checkout_date:
-        query = db.session.query(Room.id, Room.room_type_id, ROOM_STATUS_RENTED) \
-            .join(BookingNoteDetails, BookingNoteDetails.room_id == Room.id) \
-            .filter(BookingNoteDetails.checkin_date <= checkout_date,
-                    BookingNoteDetails.checkout_date >= checkin_date)
-        return query.all()
-    return []
-
-# Lấy danh sách phòng trống
-def load_empty(checkin_date=None, checkout_date=None):
-    booked_rooms = [r[0] for r in load_booked(checkin_date, checkout_date)]
-    rented_rooms = [r[0] for r in load_booking(checkin_date, checkout_date)]
-    unavailable_rooms = set(booked_rooms + rented_rooms)
-
-    query = db.session.query(Room.id, Room.room_type_id, ROOM_STATUS_EMPTY) \
-        .filter(Room.id.notin_(unavailable_rooms))
-    return query.all()
-
-# Tổng hợp danh sách tất cả phòng
-def load_all(checkin_date=None, checkout_date=None):
-    booked = load_booked(checkin_date, checkout_date)
-    rented = load_booking(checkin_date, checkout_date)
-    empty = load_empty(checkin_date, checkout_date)
-    return sorted(booked + rented + empty, key=lambda x: x[0])
+# ROOM_STATUS_WAITING = 'Chờ nhận phòng'
+# ROOM_STATUS_EMPTY = 'Trống'
+# ROOM_STATUS_BOOKED = 'Đã đặt'
+# ROOM_STATUS_RENTED = 'Đang thuê'
+#
+# def load_booked(checkin_date=None, checkout_date=None):
+#     if checkin_date and checkout_date:
+#         query = db.session.query(Room.id, Room.room_type_id, ROOM_STATUS_BOOKED) \
+#             .join(BookingNoteDetails, BookingNoteDetails.room_id == Room.id) \
+#             .filter(BookingNoteDetails.checkin_date.between(checkin_date, checkout_date) |
+#                     BookingNoteDetails.checkout_date.between(checkin_date, checkout_date))
+#         return query.all()
+#     return []
+#
+# # Lấy danh sách phòng đang thuê
+# def load_booking(checkin_date=None, checkout_date=None):
+#     if checkin_date and checkout_date:
+#         query = db.session.query(Room.id, Room.room_type_id, ROOM_STATUS_RENTED) \
+#             .join(BookingNoteDetails, BookingNoteDetails.room_id == Room.id) \
+#             .filter(BookingNoteDetails.checkin_date <= checkout_date,
+#                     BookingNoteDetails.checkout_date >= checkin_date)
+#         return query.all()
+#     return []
+#
+# # Lấy danh sách phòng trống
+# def load_empty(checkin_date=None, checkout_date=None):
+#     booked_rooms = [r[0] for r in load_booked(checkin_date, checkout_date)]
+#     rented_rooms = [r[0] for r in load_booking(checkin_date, checkout_date)]
+#     unavailable_rooms = set(booked_rooms + rented_rooms)
+#
+#     query = db.session.query(Room.id, Room.room_type_id, ROOM_STATUS_EMPTY) \
+#         .filter(Room.id.notin_(unavailable_rooms))
+#     return query.all()
+#
+# # Tổng hợp danh sách tất cả phòng
+# def load_all(checkin_date=None, checkout_date=None):
+#     booked = load_booked(checkin_date, checkout_date)
+#     rented = load_booking(checkin_date, checkout_date)
+#     empty = load_empty(checkin_date, checkout_date)
+#     return sorted(booked + rented + empty, key=lambda x: x[0])
 
 
 def room_type_stats(kw=None, from_date=None, to_date=None):

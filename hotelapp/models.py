@@ -143,8 +143,8 @@ if __name__ == '__main__':
         db.session.add(u3)
         db.session.add(u4)
 
-        rot1 = RoomType(room_type_name='Vip', price=1000000, surcharge=0.25)
-        rot2 = RoomType(room_type_name='Thường', price=550000, surcharge=0.25)
+        rot1 = RoomType(room_type_name='Classic Sea View', price=550000, surcharge=0.25)
+        rot2 = RoomType(room_type_name='Penthouse with Sea View', price=1000000, surcharge=0.25)
         db.session.add(rot1)
         db.session.add(rot2)
 
