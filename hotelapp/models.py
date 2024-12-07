@@ -131,9 +131,9 @@ if __name__ == '__main__':
         db.session.add(r2)
         db.session.add(r3)
         password_1 = str(hashlib.md5('admin'.encode('utf-8')).hexdigest())
-        u1 = User(username='admin', password=password_1, name='admin', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='default.jpg', user_role_id=1, national_id=1)
+        u1 = User(username='admin', password=password_1, name='admin', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='images/admin.jpg', user_role_id=1, national_id=1)
         password_2 = str(hashlib.md5('employee'.encode('utf-8')).hexdigest())
-        u2 = User(username='employee', password=password_2, name='employee', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='default.jpg', user_role_id=2, national_id=1)
+        u2 = User(username='employee', password=password_2, name='employee', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='images/admin.jpg', user_role_id=2, national_id=1)
         password_3 = str(hashlib.md5('phuc'.encode('utf-8')).hexdigest())
         u3 = User(username='phuc', password=password_3, name='phuc', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='default.jpg', user_role_id=3, national_id=1)
         password_4 = str(hashlib.md5('nhat'.encode('utf-8')).hexdigest())
@@ -188,9 +188,6 @@ if __name__ == '__main__':
         re2 = RentalNote(booking_note_id=2)
         db.session.add(re1)
         db.session.add(re2)
-        # Query a BookingNote and its associated RentalNotes
-        booking = BookingNote.query.first()
-        print(booking.rental_notes)  # Should print the associated rental notes
 
         db.session.commit()
 
