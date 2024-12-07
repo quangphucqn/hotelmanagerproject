@@ -1,5 +1,6 @@
 from hotelapp import app,db
-from hotelapp.models import User, Room, RoomType, RoomStatus, UserRole, National, BookingNote, BookingNoteDetails
+from hotelapp.models import User, Room, RoomType, RoomStatus, UserRole, National, BookingNote, BookingNoteDetails, Bill, \
+    RentalNote
 from flask_login import current_user
 from sqlalchemy import func
 from sqlalchemy.sql import extract
@@ -118,4 +119,36 @@ def load_all(checkin_date=None, checkout_date=None):
     return sorted(booked + rented + empty, key=lambda x: x[0])
 
 
+def room_type_stats(kw=None, from_date=None, to_date=None):
+    query = db.session.query(
+        Room.room_type_id,
+        RoomType.room_type_name,
+        func.sum(Bill.id*Bill.total_cost)
+        ).join(RoomType, Room.room_type_id == RoomType.id) \
+            .join(BookingNoteDetails, BookingNoteDetails.room_id == Room.id) \
+            .join(BookingNote, BookingNote.id == BookingNoteDetails.booking_note_id) \
+            .join(RentalNote, RentalNote.booking_note_id == BookingNote.id)  \
+            .join(Bill, Bill.rental_note_id == RentalNote.id)
 
+
+    if kw:
+        query = query.filter(RoomType.room_type_name.contains(kw))
+
+    if from_date:
+        query = query.filter(BookingNote.created_date >= from_date)
+    if to_date:
+        query = query.filter(BookingNote.created_date <= to_date)
+
+    query = query.group_by(Room.room_type_id, RoomType.room_type_name)
+
+    return query.all()
+
+def room_month_stats(year):
+    return db.session.query(
+            extract('month', BookingNoteDetails.checkin_date).label('month'),  # Lấy tháng từ ngày check-in
+            func.sum(Bill.id * Bill.total_cost)) \
+            .join(Room, Room.id == BookingNoteDetails.room_id) \
+            .filter(extract('year', BookingNoteDetails.checkin_date) == year) \
+            .group_by(extract('month', BookingNoteDetails.checkin_date))  \
+            .order_by(extract('month', BookingNoteDetails.checkin_date))  \
+            .all()
