@@ -58,7 +58,7 @@ def find_room():
 
     # Trả về giao diện
     return render_template(
-        'find_room.html' if not err_msg else 'index.html',
+        'find_room.html' if not err_msg else 'find_room.html',
         roomtypes=rt,
         available_rooms=available_rooms,
         err_msg=err_msg,
