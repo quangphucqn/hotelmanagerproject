@@ -4,100 +4,82 @@
 {% block title %} Tim phong {% endblock %}
 
 {% block content %}
-<!--Form search -->
-<div class="hotel-search-form mt-2">
-                    <form action="{{ url_for('find_room') }}" method="get">
-                        <div class="row justify-content-between align-items-end">
-                            <div class="col-6 col-md-2 col-lg-3">
-                                <label for="checkIn">Check In</label>
-                                <input type="date" class="form-control" id="checkIn" name="checkin-date">
-                            </div>
-                            <div class="col-6 col-md-2 col-lg-3">
-                                <label for="checkOut">Check Out</label>
-                                <input type="date" class="form-control" id="checkOut" name="checkout-date">
-                            </div>
-                             <div class="col-4 col-md-1">
-                                <label for="room">Room</label>
-                                <select name="room" id="room" class="form-select">
-                                  <option>1</option>
-                                  <option>2</option>
-                                  <option>3</option>
-                                  <option>4</option>
-                                </select>
-                            </div>
-                            <div class="col-4 col-md-1">
-                                <label for="adults">Adult</label>
-                                <select name="adults" id="adults" class="form-select">
-                                  <option>1</option>
-                                  <option>2</option>
-                                  <option>3</option>
-                                </select>
-                            </div>
-                            <div class="col-12 col-md-3">
-                                <button type="submit" class="form-control btn roberto-btn w-100">
-                                    Check Availability
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-</div>
-<!--End Form search  -->
-<!-- Room show-->
-
-
-{#    <div class="room-show mt-5">#}
-{#            {% for r in rooms %}#}
-{#            <div class="card mb-3" style="width: 100%;">#}
-{#              <div class="row g-0">#}
-{#                <div class="col-md-4">#}
-{#                     <a href="{{ url_for('room_list',room_id=r.id) }}">#}
-{#                    <img src="https://getwallpapers.com/wallpaper/full/e/0/7/1111915-widescreen-maldives-wallpaper-1920x1080-full-hd.jpg" class="img-fluid rounded-start" alt="...">#}
-{#                     </a>#}
-{#                </div>#}
-{##}
-{#                <div class="col-md-8">#}
-{#                  <div class="card-body">#}
-{#                    <h5 class="card-title">{{ r.room_type_id }}</h5>#}
-{#                    <p class="card-text">{{ r.price }}</p>#}
-{#                    <p class="card-text"><small class="text-muted">{{ r.max_people }} <i class="fa-solid fa-user"></i></small></p>#}
-{#                      <a href="#" class="btn btn-primary">Đặt phòng ngay</a>#}
-{#                  </div>#}
-{#                </div>#}
-{#              </div>#}
-{#            </div>#}
-{#            {% endfor %}#}
-{#    </div>#}
-
-<div class="room-show mt-5">
-    {% for r in rooms %}
-    <div class="card mb-3" style="width: 100%;">
-        <div class="row g-0">
-            <div class="col-md-4">
-                <a href="{{ url_for('room_list', room_id=r.id) }}">
-                    <!-- Hình ảnh phòng -->
-                    <img src="{{ url_for('static', filename=r.image) }}" class="img-fluid rounded-start" alt="{{ r.room_type.room_type_name }}">
-                </a>
-            </div>
-
-            <div class="col-md-8">
-                <div class="card-body">
-                    <h5 class="card-title">{{ r.room_type.room_type_name }}</h5>
-                    <!-- Hiển thị tên loại phòng -->
-                    <p class="card-text">{{ "{:,.0f}".format(r.price()) }} VND</p>
-                    <!-- Hiển thị giá phòng -->
-                    <p class="card-text"><small class="text-muted">{{ r.max_people }} <i class="fa-solid fa-user"></i></small></p>
-                    <!-- Hiển thị số người tối đa -->
-                    <a href="{{ url_for('room_list', room_id=r.id) }}" class="btn btn-primary">Đặt phòng ngay</a>
-                    <!-- Liên kết để đặt phòng -->
+    <!--Form search -->
+    <div class="hotel-search-form mt-2">
+        <form action="{{ url_for('find_room') }}" method="get">
+            {% if err_msg %}
+                <div class="alert alert-danger">
+                    {{ err_msg }}
+                </div>
+            {% endif %}
+            <div class="row justify-content-between align-items-end">
+                <div class="col-6 col-md-2 col-lg-3">
+                    <label for="checkIn">Check In</label>
+                    <input type="date" class="form-control" id="checkIn" name="checkin-date" value="{{ checkin_date }}" required>
+                </div>
+                <div class="col-6 col-md-2 col-lg-3">
+                    <label for="checkOut">Check Out</label>
+                    <input type="date" class="form-control" id="checkOut" name="checkout-date" value="{{ checkout_date }}" required>
+                </div>
+                <div class="col-4 col-md-1">
+                    <label for="room">Room</label>
+                    <select name="room" id="room" class="form-select">
+                        <option value="1" {% if num_rooms_requested == '1' %}selected{% endif %}>1</option>
+                        <option value="2" {% if num_rooms_requested == '2' %}selected{% endif %}>2</option>
+                        <option value="3" {% if num_rooms_requested == '3' %}selected{% endif %}>3</option>
+                        <option value="4" {% if num_rooms_requested == '4' %}selected{% endif %}>4</option>
+                    </select>
+                </div>
+                <div class="col-4 col-md-1">
+                    <label for="adults">Adult</label>
+                    <select name="adults" id="adults" class="form-select" >
+                        <option value="1" {% if adults == '1' %}selected{% endif %}>1</option>
+                        <option value="2" {% if adults == '2' %}selected{% endif %}>2</option>
+                        <option value="3" {% if adults == '3' %}selected{% endif %}>3</option>
+                        <option value="4" {% if adults == '4' %}selected{% endif %}>4</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <button type="submit" class="form-control btn roberto-btn w-100">
+                        Check Availability
+                    </button>
                 </div>
             </div>
-        </div>
+        </form>
     </div>
-    {% endfor %}
-</div>
-
-
-
+    <!--End Form search  -->
+    <!-- Room show-->
+    {% if err_msg %}
+        <div class="alert alert-danger">
+            {{ err_msg }}
+        </div>
+    {% elif available_rooms %}
+        <div class="room-show mt-5">
+            {% for room, room_type, room_status in available_rooms %}
+                <div class="card mb-3" style="width: 100%;">
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            <img src="https://getwallpapers.com/wallpaper/full/e/0/7/1111915-widescreen-maldives-wallpaper-1920x1080-full-hd.jpg"
+                                 class="img-fluid rounded-start" alt="Room image">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ room_type.room_type_name }}</h5>
+                                <p class="card-text">{{ room_type.price }}</p>
+                                <p class="card-text"><small class="text-muted">{{ room.max_people }} <i
+                                        class="fa-solid fa-user"></i></small></p>
+                                <a href="#" class="btn btn-primary">Đặt phòng ngay</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            Không có phòng trống phù hợp với yêu cầu của bạn. Vui lòng thử lại.
+        </div>
+    {% endif %}
 
 
 {% endblock %}

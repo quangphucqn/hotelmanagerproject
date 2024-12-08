@@ -119,5 +119,14 @@ body>div.container>div.container.mt-3> div.flex-box-room>div.card.img-fluid{
 body>div.container>div.container.mt-3> div.flex-box-room>div.card.img-fluid> div.card-img-overlay>h4.card-title{
     color: white;
 }
+body>div.container>div.room-show>div.card{
+    position: relative;
+}
+
+body>div.container>div.room-show>div.card>div.row>div.col-md-8>div.card-body>a.btn-primary {
+    position: absolute;
+    bottom: 10px; /* Cách đáy 10px */
+    right: 10px; /* Cách phải 10px */
+}
 
 
