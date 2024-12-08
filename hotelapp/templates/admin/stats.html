@@ -12,19 +12,21 @@
                 <th>SỐ LƯỢT THUÊ</th>
                 <th>TỶ LỆ</th>
             </tr>
-            {% if room_type_stats %}
-                {% for rt in room_type_stats %}
+            {% if month_stats %}
+                {% for r in month_stats %}
                 <tr>
-                    <td>{{ rt[0] }}</td>
-                    <td>{{ "{:,.1f}".format(rt[1]) }} VND</td>
-                    <td>{{ rt[2] }}</td>
-                    <td>{{ "{:.2f}".format(rt[3]) }}%</td>
+                    <td>{{ r.room_type_name }}</td>
+                    <td>{{ r.total_revenue }} VND</td>
+                    <td>{{ r.total_bookings }}</td>
+                    <td>{{ (r.total_revenue / r.total_cost_times_bookings * 100) | round(2) }}%</td>
                 </tr>
                 {% endfor %}
             {% else %}
                 <tr><td colspan="4">Không có dữ liệu để hiển thị</td></tr>
             {% endif %}
         </table>
+
+        <h3>Tổng doanh thu: {{ grand_cost }} VND</h3>
     </div>
 
     <div class="col-md-5 col-xs-12">
@@ -38,36 +40,47 @@
             </div>
             <input type="submit" value="Thống kê" class="btn btn-info">
         </form>
-        <canvas id="roomChartId"></canvas>
+        <canvas id="monthChartId"></canvas>
     </div>
 </div>
+
 
 <div class="row">
     <div class="col-md-5 col-xs-12">
         <table class="table">
             <tr>
-                <th>THÁNG</th>
-                <th>DOANH THU</th>
+                <th>PHÒNG</th>
+                <th>SỐ NGÀY THUÊ</th>
+                <th>TỶ LỆ</th>
             </tr>
-            {% for s in monthly_revenue_stats %}
-            <tr>
-                <td>{{ s[0] }}</td>
-                <td>{{ "{:,.1f}".format(s[1]) }} VND</td>
-            </tr>
-            {% endfor %}
+            {% if density_stats %}
+                {% for u in density_stats %}
+                <tr>
+                    <td>{{ u.room_type_name }}</td>
+                    <td>{{ u.total_days_rented }}</td>
+                    <td>{{ u.usage_rate }}%</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="3">Không có dữ liệu để hiển thị</td></tr>
+            {% endif %}
         </table>
     </div>
-
     <div class="col-md-5 col-xs-12">
         <form method="get">
             <div class="form-group">
-                <input type="number" min="2000" name="year" class="form-control" placeholder="Nhập năm..." />
+                <input type="date" class="form-control" name="from_date" />
             </div>
-            <input type="submit" value="Thống kê" class="btn btn-danger" />
+            <br>
+            <div class="form-group">
+                <input type="date" class="form-control" name="to_date" />
+            </div>
+            <input type="submit" value="Thống kê" class="btn btn-info">
         </form>
-        <canvas id="roomMonthChartId"></canvas>
+        <canvas id="densityChartId"></canvas>
     </div>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>

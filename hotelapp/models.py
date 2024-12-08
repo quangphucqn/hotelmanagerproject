@@ -189,6 +189,7 @@ if __name__ == '__main__':
         db.session.add(re1)
         db.session.add(re2)
 
+
         db.session.commit()
 
 
