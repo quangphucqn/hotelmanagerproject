@@ -49,11 +49,11 @@
     </div>
     <!--End Form search  -->
     <!-- Room show-->
-    {% if err_msg %}
-        <div class="alert alert-danger">
-            {{ err_msg }}
-        </div>
-    {% elif available_rooms %}
+{#    {% if err_msg %}#}
+{#        <div class="alert alert-danger">#}
+{#            {{ err_msg }}#}
+{#        </div>#}
+    {% if available_rooms %}
         <div class="room-show mt-5">
             {% for room, room_type, room_status in available_rooms %}
                 <div class="card mb-3" style="width: 100%;">
@@ -65,7 +65,7 @@
                         <div class="col-md-8">
                             <div class="card-body">
                                 <h5 class="card-title">{{ room_type.room_type_name }}</h5>
-                                <p class="card-text">{{ room_type.price }}</p>
+                                <p class="card-text" style="font-weight: bold;margin-top: 1rem">{{ room_type.price }} VND </p>
                                 <p class="card-text"><small class="text-muted">{{ room.max_people }} <i
                                         class="fa-solid fa-user"></i></small></p>
                                 <a href="#" class="btn btn-primary">Đặt phòng ngay</a>
@@ -76,7 +76,7 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="alert alert-warning">
+        <div class="alert alert-warning mt-3">
             Không có phòng trống phù hợp với yêu cầu của bạn. Vui lòng thử lại.
         </div>
     {% endif %}

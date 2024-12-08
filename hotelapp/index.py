@@ -39,9 +39,9 @@ def find_room():
             # Tính khoảng cách giữa các ngày
             d_in_now = (checkindate - d_now).days
             d_in_out = (checkoutdate - checkindate).days
-
+            d_available= (checkoutdate - d_now).days
             # Ràng buộc kiểm tra ngày hợp lệ
-            if d_in_now >= 0 and d_in_now <= 28:  # Ngày nhận không quá 28 ngày từ hôm nay
+            if d_in_now >= 0 and d_available <= 28:  # Ngày nhận không quá 28 ngày từ hôm nay
                 if d_in_out >= 1:  # Ngày trả phải sau ngày nhận ít nhất 1 ngày
                     # Tìm phòng trống
                     available_rooms = utils.find_room(checkindate, checkoutdate, num_rooms_requested)
@@ -50,7 +50,7 @@ def find_room():
                 else:
                     err_msg = 'Lỗi! Ngày trả phòng phải sau ngày nhận phòng.'
             else:
-                err_msg = 'Lỗi! Ngày nhận phòng phải từ hôm nay và không quá 28 ngày từ hôm nay.'
+                err_msg = 'Lỗi! Ngày nhận phòng phải sau ngày hôm nay và không quá 28 ngày từ hôm nay.'
         except ValueError:
             err_msg = 'Lỗi định dạng ngày tháng. Vui lòng nhập đúng định dạng.'
     else:
@@ -58,7 +58,7 @@ def find_room():
 
     # Trả về giao diện
     return render_template(
-        'find_room.html' if not err_msg else 'index.html',
+        'find_room.html' if not err_msg else 'find_room.html',
         roomtypes=rt,
         available_rooms=available_rooms,
         err_msg=err_msg,
