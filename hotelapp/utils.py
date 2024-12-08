@@ -1,4 +1,5 @@
 from hotelapp import app,db
+from flask import current_app
 from hotelapp.models import User, Room, RoomType, RoomStatus, UserRole, National, BookingNote, BookingNoteDetails, Bill, \
     RentalNote
 from flask_login import current_user
@@ -119,36 +120,86 @@ def load_all(checkin_date=None, checkout_date=None):
     return sorted(booked + rented + empty, key=lambda x: x[0])
 
 
-def room_type_stats(kw=None, from_date=None, to_date=None):
+# def room_type_stats(kw=None, from_date=None, to_date=None):
+#     with current_app.app_context():
+#         query = db.session.query(
+#             Room.room_type_id,
+#             RoomType.room_type_name,
+#             (func.count(BookingNoteDetails.id) * func.sum(Bill.total_cost))
+#         ).join(RoomType, Room.room_type_id == RoomType.id) \
+#             .join(BookingNoteDetails, BookingNoteDetails.room_id == Room.id) \
+#             .join(BookingNote, BookingNote.id == BookingNoteDetails.booking_note_id) \
+#             .join(RentalNote, RentalNote.booking_note_id == BookingNote.id) \
+#             .join(Bill, Bill.rental_note_id == RentalNote.id) \
+#             .group_by(Room.room_type_id, RoomType.room_type_name)
+#
+#         # Lọc theo từ khóa
+#         if kw:
+#             query = query.filter(RoomType.room_type_name.contains(kw))
+#
+#         # Lọc theo ngày bắt đầu
+#         if from_date:
+#             query = query.filter(BookingNote.created_date >= from_date)
+#
+#         # Lọc theo ngày kết thúc
+#         if to_date:
+#             query = query.filter(BookingNote.created_date <= to_date)
+#
+#         # Nhóm kết quả theo loại phòng
+#         query = query.group_by(Room.room_type_id, RoomType.room_type_name)
+#
+#         return query.all()
+#
+#
+# def room_month_stats(year):
+#     return db.session.query(
+#             extract('month', BookingNoteDetails.checkin_date).label('month'),  # Lấy tháng từ ngày check-in
+#             func.sum(BookingNoteDetails.id * Bill.total_cost)) \
+#             .join(Room, Room.id == BookingNoteDetails.room_id) \
+#             .filter(extract('year', BookingNoteDetails.checkin_date) == year) \
+#             .group_by(extract('month', BookingNoteDetails.checkin_date))  \
+#             .order_by(extract('month', BookingNoteDetails.checkin_date))  \
+#             .all()
+#
+from sqlalchemy import func
+
+def monthly_revenue_report(from_date=None, to_date=None):
     query = db.session.query(
-        Room.room_type_id,
-        RoomType.room_type_name,
-        func.sum(Bill.id*Bill.total_cost)
-        ).join(RoomType, Room.room_type_id == RoomType.id) \
-            .join(BookingNoteDetails, BookingNoteDetails.room_id == Room.id) \
-            .join(BookingNote, BookingNote.id == BookingNoteDetails.booking_note_id) \
-            .join(RentalNote, RentalNote.booking_note_id == BookingNote.id)  \
-            .join(Bill, Bill.rental_note_id == RentalNote.id)
-
-
-    if kw:
-        query = query.filter(RoomType.room_type_name.contains(kw))
+        func.date_format(Bill.created_date, '%Y-%m').label('month'),  # Group by month (format YYYY-MM)
+        func.sum(Bill.total_cost).label('total_revenue')             # Sum of total_cost
+    )
 
     if from_date:
-        query = query.filter(BookingNote.created_date >= from_date)
+        query = query.filter(Bill.created_date >= from_date)
     if to_date:
-        query = query.filter(BookingNote.created_date <= to_date)
+        query = query.filter(Bill.created_date <= to_date)
 
-    query = query.group_by(Room.room_type_id, RoomType.room_type_name)
+    query = query.group_by(func.date_format(Bill.created_date, '%Y-%m')) \
+                 .order_by(func.date_format(Bill.created_date, '%Y-%m'))
 
     return query.all()
 
-def room_month_stats(year):
-    return db.session.query(
-            extract('month', BookingNoteDetails.checkin_date).label('month'),  # Lấy tháng từ ngày check-in
-            func.sum(Bill.id * Bill.total_cost)) \
-            .join(Room, Room.id == BookingNoteDetails.room_id) \
-            .filter(extract('year', BookingNoteDetails.checkin_date) == year) \
-            .group_by(extract('month', BookingNoteDetails.checkin_date))  \
-            .order_by(extract('month', BookingNoteDetails.checkin_date))  \
-            .all()
+
+def room_type_usage_report(from_date=None, to_date=None):
+    query = db.session.query(
+        func.date_format(BookingNoteDetails.checkin_date, '%Y-%m').label('month'),  # Group by month
+        RoomType.room_type_name,                                                   # Room type name
+        func.count(BookingNoteDetails.room_id).label('usage_frequency')            # Count of bookings
+    ).join(Room, Room.id == BookingNoteDetails.room_id) \
+     .join(RoomType, Room.room_type_id == RoomType.id)
+
+    if from_date:
+        query = query.filter(BookingNoteDetails.checkin_date >= from_date)
+    if to_date:
+        query = query.filter(BookingNoteDetails.checkin_date <= to_date)
+
+    query = query.group_by(
+        func.date_format(BookingNoteDetails.checkin_date, '%Y-%m'),
+        RoomType.room_type_name
+    ).order_by(func.date_format(BookingNoteDetails.checkin_date, '%Y-%m'), RoomType.room_type_name)
+
+    return query.all()
+
+if __name__ == '__main__':
+    with app.app_context():
+        print(room_type_usage_report())

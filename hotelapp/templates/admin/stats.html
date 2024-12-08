@@ -1,52 +1,55 @@
 {% extends 'admin/base.html' %}
 
-
 {% block body %}
-<h1 class="text-center text-danger">THONG KE DOANH THU</h1>
-<div class="row">
-    <div class="col-md-5 col-xs-12">
-    <table class="table">
-        <tr>
-            <th>LOAI PHONG</th>
-            <th>DOANH THU</th>
-            <th>SO LUOT THUE</th>
-            <th>TY LE</th>
-        </tr>
-        {% for s in stats %}
-         <tr>
-            <td>{{ s[0] }}</td>
-            <td>{{ "{:,.1f}".format(s[1]) }} VND</td>  
-            <td>{{ s[2] }}</td> 
-            <td>{{ "{:.2f}".format(s[3] * 100) }}%</td>
-        </tr>
-        {% endfor %}
-    </table>
-</div>
-    <div class="col-md-5 col-xs-12">
-        <form >
-            <div class="form-group">
-                <input type="text" class="form-control" name="kw" placeholder="Nhap tu khoa..."/>
-            </div>
-            <div clas="form-group">
-                 <input type="date" class="form-control" name="from_date" />
-            </div>
-            <br>
-             <div clas="form-group">
-                 <input type="date" class="form-control" name="to_date" />
-            </div>
-            <input type="submit" value="Thong ke" class="btn btn-info">
-        </form>
-        <canvas id="roomChartId"></canvas>
-    </div>
-</div>
+<h1 class="text-center text-danger">THỐNG KÊ DOANH THU THEO LOẠI PHÒNG</h1>
+
 <div class="row">
     <div class="col-md-5 col-xs-12">
         <table class="table">
             <tr>
-                <th>Thang</th>
-                <th>Doanh thu</th>
+                <th>LOẠI PHÒNG</th>
+                <th>DOANH THU</th>
+                <th>SỐ LƯỢT THUÊ</th>
+                <th>TỶ LỆ</th>
             </tr>
-            {% for s in month_stats %}
+            {% if room_type_stats %}
+                {% for rt in room_type_stats %}
+                <tr>
+                    <td>{{ rt[0] }}</td>
+                    <td>{{ "{:,.1f}".format(rt[1]) }} VND</td>
+                    <td>{{ rt[2] }}</td>
+                    <td>{{ "{:.2f}".format(rt[3]) }}%</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="4">Không có dữ liệu để hiển thị</td></tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <div class="col-md-5 col-xs-12">
+        <form method="get">
+            <div class="form-group">
+                <input type="date" class="form-control" name="from_date" />
+            </div>
+            <br>
+            <div class="form-group">
+                <input type="date" class="form-control" name="to_date" />
+            </div>
+            <input type="submit" value="Thống kê" class="btn btn-info">
+        </form>
+        <canvas id="roomChartId"></canvas>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-5 col-xs-12">
+        <table class="table">
+            <tr>
+                <th>THÁNG</th>
+                <th>DOANH THU</th>
+            </tr>
+            {% for s in monthly_revenue_stats %}
             <tr>
                 <td>{{ s[0] }}</td>
                 <td>{{ "{:,.1f}".format(s[1]) }} VND</td>
@@ -54,74 +57,73 @@
             {% endfor %}
         </table>
     </div>
+
     <div class="col-md-5 col-xs-12">
-        <form>
+        <form method="get">
             <div class="form-group">
-                <input type="number" min="2000"  name ="year"
-                       class="form-control"
-                        placeholder="Nhap nam..."/>
+                <input type="number" min="2000" name="year" class="form-control" placeholder="Nhập năm..." />
             </div>
-            <input type="submit" value="Thong ke" class="btn btn-danger"/>
+            <input type="submit" value="Thống kê" class="btn btn-danger" />
         </form>
         <canvas id="roomMonthChartId"></canvas>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    let labels=[],labels2=[]
-    let data=[],data2=[]
-    let colors=[],colors2=[]
-    let borderColors=[],borderColors2=[]
-    let r,g,b;
+    let labels = [], labels2 = [];
+    let data = [], data2 = [];
+    let colors = [], colors2 = [];
+    let borderColors = [], borderColors2 = [];
+    let r, g, b;
 
-    {% for s in stats %}
-    {% if s[2] %}
-        labels.push('{{ s[1] }}')
-        data.push( {{ s[2] }})
+    // Biểu đồ loại phòng
+    {% for s in room_type_stats %}
+        labels.push('{{ s.room_type_name }}'); // Loại phòng
+        data.push({{ s.total_revenue }}); // Doanh thu
 
-    r=parseInt(Math.random()*255)
-    g=parseInt(Math.random()*255)
-    b=parseInt(Math.random()*255)
+        r = parseInt(Math.random() * 255);
+        g = parseInt(Math.random() * 255);
+        b = parseInt(Math.random() * 255);
 
-    colors.push(`rgba(${r},${g},${b},0.2)`)
-    borderColors.push(`rgba(${r},${g},${b},1)`)
-    {% endif %}
+        colors.push(`rgba(${r},${g},${b},0.2)`);
+        borderColors.push(`rgba(${r},${g},${b},1)`);
     {% endfor %}
 
-    {% for s in month_stats %}
+    // Biểu đồ doanh thu theo tháng
+    {% for s in monthly_revenue_stats %}
+        labels2.push('Tháng {{ s.month }}');
+        data2.push({{ s.total_revenue }});
 
-        labels2.push({{ s[0] }})
-        data2.push( {{ s[1] }})
+        r = parseInt(Math.random() * 255);
+        g = parseInt(Math.random() * 255);
+        b = parseInt(Math.random() * 255);
 
-    r=parseInt(Math.random()*255)
-    g=parseInt(Math.random()*255)
-    b=parseInt(Math.random()*255)
-
-    colors2.push(`rgba(${r},${g},${b},0.2)`)
-    borderColors2.push(`rgba(${r},${g},${b},1)`)
-
+        colors2.push(`rgba(${r},${g},${b},0.2)`);
+        borderColors2.push(`rgba(${r},${g},${b},1)`);
     {% endfor %}
 
-    window.onload=function () {
+    window.onload = function () {
         const ctx = document.getElementById('roomChartId').getContext('2d');
-        const ctx2 =document.getElementById('roomMonthChartId').getContext('2d')
+        const ctx2 = document.getElementById('roomMonthChartId').getContext('2d');
 
+        // Biểu đồ doanh thu theo loại phòng
+        loadChart(ctx, labels, data, 'bar', colors, borderColors, 'Doanh thu theo loại phòng');
 
-        loadChart(ctx,labels,data,'bar',colors,borderColors)
-        loadChart(ctx2,labels2,data2,'line',colors2,borderColors2)
+        // Biểu đồ doanh thu theo tháng
+        loadChart(ctx2, labels2, data2, 'line', colors2, borderColors2, 'Doanh thu theo tháng');
     }
 
-function loadChart(ctx,labels,data,type,colors,borderColors){
-
+    function loadChart(ctx, labels, data, type, colors, borderColors, label) {
         const myChart = new Chart(ctx, {
             type: type,
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Thong ke doanh thu',
+                    label: label,
                     data: data,
                     backgroundColor: colors,
-                    borderColors: borderColors,
+                    borderColor: borderColors,
                     borderWidth: 1
                 }]
             },
@@ -133,7 +135,7 @@ function loadChart(ctx,labels,data,type,colors,borderColors){
                 }
             }
         });
-}
+    }
 </script>
 
 {% endblock %}

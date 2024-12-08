@@ -142,9 +142,6 @@ def room_list(room_id):
 
 
 
-
-
-
 if __name__ == '__main__':
     from hotelapp.admin import*
     app.run(debug=True)

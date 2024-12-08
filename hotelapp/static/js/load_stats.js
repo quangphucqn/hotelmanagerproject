@@ -1,27 +1,27 @@
 $(document).ready(function () {
-    // Khởi tạo các biểu đồ ban đầu
+    // Lấy dữ liệu JSON từ các thẻ script
+    const stats = JSON.parse(document.getElementById('stats-data').textContent || '[]');
+    const monthStats = JSON.parse(document.getElementById('month-stats-data').textContent || '[]');
+
+    // Khởi tạo biểu đồ ban đầu
     const ctx1 = document.getElementById('roomChartId');
     const ctx2 = document.getElementById('roomMonthChartId');
 
-    // Lấy dữ liệu JSON từ thẻ script để đảm bảo an toàn
-    const stats = JSON.parse(document.getElementById('stats-data').textContent);
-    const monthStats = JSON.parse(document.getElementById('month-stats-data').textContent);
+    ctx1.chartInstance = initializeChart(ctx1, stats, 'bar', 'Thống kê doanh thu theo loại phòng');
+    ctx2.chartInstance = initializeChart(ctx2, monthStats, 'line', 'Thống kê doanh thu theo tháng');
 
-    ctx1.chartInstance = initializeChart(ctx1, stats, 'bar');
-    ctx2.chartInstance = initializeChart(ctx2, monthStats, 'line');
-
-    function initializeChart(canvas, parsedData, chartType) {
-        console.log('Parsed data:', parsedData); // In dữ liệu đã phân tích cú pháp ra console
+    // Hàm khởi tạo biểu đồ
+    function initializeChart(canvas, parsedData, chartType, chartLabel) {
         try {
-            let labels = parsedData.map(item => item[1] || item[0]);
-            let data = parsedData.map(item => item[2] || item[1] || 0);
+            const labels = parsedData.map(item => item[0]); // Nhãn (loại phòng hoặc tháng)
+            const data = parsedData.map(item => item[1]); // Doanh thu
 
             return new Chart(canvas.getContext('2d'), {
                 type: chartType,
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Thống kê doanh thu',
+                        label: chartLabel,
                         data: data,
                         backgroundColor: 'rgba(75, 192, 192, 0.2)',
                         borderColor: 'rgba(75, 192, 192, 1)',
@@ -37,39 +37,38 @@ $(document).ready(function () {
                 }
             });
         } catch (error) {
-            console.error('Error initializing charts:', error);
+            console.error('Error initializing chart:', error);
         }
     }
 });
 
+// Xử lý cập nhật dữ liệu qua AJAX
 $(document).on('submit', 'form', function (event) {
     event.preventDefault();
 
-    let form = $(this);
-    let url = form.attr('action') || window.location.href;
-    let data = form.serialize();
+    const form = $(this);
+    const url = form.attr('action') || window.location.href;
+    const data = form.serialize();
+    const canvas = form.next('canvas')[0]; // Lấy thẻ canvas kế tiếp
 
     $.ajax({
         url: url,
         method: 'GET',
         data: data,
         success: function (response) {
-            let canvas = form.next('canvas')[0];
-
-            // Kiểm tra và hủy biểu đồ cũ trước khi tạo biểu đồ mới
+            // Hủy biểu đồ cũ (nếu có)
             if (canvas.chartInstance) {
-                canvas.chartInstance.destroy(); // Ensure the old chart is destroyed
+                canvas.chartInstance.destroy();
             }
 
-            // Tạo biểu đồ mới với dữ liệu phản hồi từ yêu cầu AJAX
-            console.log('Creating new chart with data:', response); // Debugging the response
+            // Tạo biểu đồ mới với dữ liệu phản hồi
             canvas.chartInstance = new Chart(canvas.getContext('2d'), {
-                type: 'line', // Có thể thay đổi tùy theo yêu cầu
+                type: 'line', // Kiểu biểu đồ
                 data: {
-                    labels: response.labels,
+                    labels: response.labels, // Nhãn từ phản hồi
                     datasets: [{
                         label: 'Thống kê doanh thu',
-                        data: response.data,
+                        data: response.data, // Dữ liệu từ phản hồi
                         backgroundColor: 'rgba(75, 192, 192, 0.2)',
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 1
