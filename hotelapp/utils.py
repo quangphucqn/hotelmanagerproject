@@ -117,7 +117,7 @@ def add_bill(rental_note_id):
 
 # Phần phòng + loại phòng
 
-def get_soluong_RoomType(room_id):
+def get_quantity_RoomType(room_id):
     query = db.session.query(RoomType.id, RoomType.room_type_name, Room.max_people) \
         .join(Room, Room.room_type_id.__eq__(RoomType.id)).filter(Room.id.__eq__(room_id)).first()
 
@@ -176,7 +176,7 @@ def find_room(checkin_date, checkout_date, num_rooms_requested):
 #Tính tổng doanh thu
 def grand_total_revenue(from_date=None, to_date=None):
     query = db.session.query(
-        func.sum(Bill.total_cost).label('grand_total_revenue')
+        func.sum(Bill.total_cost)
     )
 
     if from_date:
@@ -186,6 +186,7 @@ def grand_total_revenue(from_date=None, to_date=None):
 
     grand_cost= query.scalar() or 0
     return grand_cost
+
 # Thống kê doanh thu theo tháng
 def monthly_revenue_report(from_date=None, to_date=None):
     query = db.session.query(
@@ -227,9 +228,6 @@ def monthly_revenue_report(from_date=None, to_date=None):
 
 
 #Thống kê mật độ sử dụng phòng
-
-from sqlalchemy import func
-
 def usage_density_report(from_date=None, to_date=None):
     # Truy vấn tổng số ngày thuê của tất cả các loại phòng
     total_days_rented_query = db.session.query(
@@ -279,7 +277,7 @@ def usage_density_report(from_date=None, to_date=None):
         {
             'room_type_name': r.room_type_name,
             'total_days_rented': r.total_days_rented,
-            'usage_rate': (r.total_days_rented / total_days_rented * 100) if total_days_rented else 0
+            'usage_rate': round((r.total_days_rented / total_days_rented * 100),2) if total_days_rented else 0
         }
         for r in result
     ]

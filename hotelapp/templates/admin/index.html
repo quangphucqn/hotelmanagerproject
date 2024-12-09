@@ -1,8 +1,13 @@
 {% extends 'admin/base.html'%}
 
 {% block body %}
+<div style="position: relative;">
 {% if current_user.is_authenticated %}
-    <h1> WELCOME <span class="text-info"> {{ current_user.name }} TO ADMINISTRATION WEBSITE!!!</span></h1>
+        <div style="position: relative; z-index: 1;">
+    <h1> WELCOME <span class="text-info text-center"> {{ current_user.name }} TO ADMINISTRATION WEBSITE!!!</span></h1>
+    <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Avatar Logo" style="position: absolute; top: 0; left: 0; z-index: -1;width:100%;opacity:20%"/>
+    </div>
+    </div>
 {% else %}
 <h1 class="text-center text-danger">ĐĂNG NHẬP QUẢN TRỊ</h1>
 <form method="post" action="{{ url_for('login_admin')}}">
@@ -16,7 +21,5 @@
     </div>
     <input type="submit" value="Đăng nhập" class="btn btn-danger"/>
 </form>
-
 {% endif %}
-
 {% endblock %}

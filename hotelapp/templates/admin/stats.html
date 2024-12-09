@@ -4,7 +4,7 @@
 <h1 class="text-center text-danger">THỐNG KÊ DOANH THU THEO LOẠI PHÒNG</h1>
 
 <div class="row">
-    <div class="col-md-5 col-xs-12">
+    <div class="col-md-7 col-xs-12">
         <table class="table">
             <tr>
                 <th>LOẠI PHÒNG</th>
@@ -16,9 +16,9 @@
                 {% for r in month_stats %}
                 <tr>
                     <td>{{ r.room_type_name }}</td>
-                    <td>{{ r.total_revenue }} VND</td>
+                    <td>{{ '{:,.1f}'.format(r.total_revenue) }} VND</td>
                     <td>{{ r.total_bookings }}</td>
-                    <td>{{ (r.total_revenue / r.total_cost_times_bookings * 100) | round(2) }}%</td>
+                    <td>{{ (r.total_revenue / grand_cost * 100) | round(2) }}%</td>
                 </tr>
                 {% endfor %}
             {% else %}
@@ -26,7 +26,7 @@
             {% endif %}
         </table>
 
-        <h3>Tổng doanh thu: {{ grand_cost }} VND</h3>
+        <h3 class="text-primary">Tổng doanh thu: {{ '{:,.1f}'.format(grand_cost) }} VND</h3>
     </div>
 
     <div class="col-md-5 col-xs-12">
@@ -44,9 +44,9 @@
     </div>
 </div>
 
-
+<h1 class="text-center text-danger">THỐNG KÊ TẦN SUẤT SỬ DỤNG LOẠI PHÒNG</h1>
 <div class="row">
-    <div class="col-md-5 col-xs-12">
+    <div class="col-md-7 col-xs-12">
         <table class="table">
             <tr>
                 <th>PHÒNG</th>
@@ -91,9 +91,9 @@
     let r, g, b;
 
     // Biểu đồ loại phòng
-    {% for s in room_type_stats %}
-        labels.push('{{ s.room_type_name }}'); // Loại phòng
-        data.push({{ s.total_revenue }}); // Doanh thu
+    {% for r in month_stats %}
+        labels.push('{{ r.room_type_name }}'); // Loại phòng
+        data.push({{ r.total_revenue }}); // Doanh thu
 
         r = parseInt(Math.random() * 255);
         g = parseInt(Math.random() * 255);
@@ -104,9 +104,9 @@
     {% endfor %}
 
     // Biểu đồ doanh thu theo tháng
-    {% for s in monthly_revenue_stats %}
-        labels2.push('Tháng {{ s.month }}');
-        data2.push({{ s.total_revenue }});
+    {% for u in density_stats %}
+        labels2.push( '{{ u.room_type_name }}');
+        data2.push({{ u.usage_rate }});
 
         r = parseInt(Math.random() * 255);
         g = parseInt(Math.random() * 255);
@@ -117,14 +117,14 @@
     {% endfor %}
 
     window.onload = function () {
-        const ctx = document.getElementById('roomChartId').getContext('2d');
-        const ctx2 = document.getElementById('roomMonthChartId').getContext('2d');
+        const ctx = document.getElementById('monthChartId').getContext('2d');
+        const ctx2 = document.getElementById('densityChartId').getContext('2d');
 
         // Biểu đồ doanh thu theo loại phòng
-        loadChart(ctx, labels, data, 'bar', colors, borderColors, 'Doanh thu theo loại phòng');
+        loadChart(ctx, labels, data, 'bar', colors, borderColors, 'Doanh thu theo tháng');
 
         // Biểu đồ doanh thu theo tháng
-        loadChart(ctx2, labels2, data2, 'line', colors2, borderColors2, 'Doanh thu theo tháng');
+        loadChart(ctx2, labels2, data2, 'pie', colors2, borderColors2, 'Tần suất sử dụng các loại phòng');
     }
 
     function loadChart(ctx, labels, data, type, colors, borderColors, label) {
