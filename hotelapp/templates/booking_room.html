@@ -1,0 +1,41 @@
+{% extends 'layout/base.html' %}
+
+
+{% block title %} Booking Room - Select Your Room {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3>Danh sách phòng trống</h3>
+    <form action="#" method="POST">
+        <input type="hidden" name="checkin_date" value="{{ checkin_date }}">
+        <input type="hidden" name="checkout_date" value="{{ checkin_date }}">
+
+        {% for room, room_type, room_status in available_rooms %}
+        <div class="card mb-3">
+            <div class="row g-0">
+                <div class="col-md-4">
+                    <img src="{{ room.image }}" class="img-fluid rounded-start" alt="Room image">
+                </div>
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title">Phòng: {{ room.room_address }}</h5>
+                        <p class="card-text">Loại phòng: {{ room_type.room_type_name }}</p>
+                        <p class="card-text">Số người ở: {{ room.max_people }}</p>
+                        <p class="card-text">Giá: {{ room_type.price }} VNĐ</p>
+                        {% if room.id|string in cart %}
+                    <!-- Nếu phòng đã có trong giỏ hàng -->
+                        <a href="#" class="btn btn-success"
+                           onclick="removeFromCart('{{ room.id }}','{{ checkin_date }}', '{{ checkout_date }}', this)">Đã chọn</a>
+                        {% else %}
+                                <!-- Nếu phòng chưa có trong giỏ hàng -->
+                        <a href="#" class="btn btn-primary"
+                                   onclick="addToCart('{{ room.id }}', '{{ checkin_date }}', '{{ checkout_date }}', this)">Chọn phòng</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </form>
+</div>
+{% endblock %}

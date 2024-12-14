@@ -135,41 +135,73 @@ def room_list():
     ).all()
     return rooms
 
+# TÌM PHÒNG
 # Lấy danh sách phòng trống
 def find_room(checkin_date, checkout_date, num_rooms_requested):
-    # Truy vấn phòng trống theo loại và trạng thái
-    rooms = db.session.query(Room, RoomType, RoomStatus).join(
-        RoomType, Room.room_type_id == RoomType.id
+    # Truy vấn số lượng phòng trống theo loại
+    room_counts = db.session.query(
+        RoomType.id,
+        RoomType.room_type_name,
+        RoomType.price,
+        func.count(Room.id).label('available_count')
+    ).join(
+        Room, Room.room_type_id == RoomType.id
     ).join(
         RoomStatus, Room.room_status_id == RoomStatus.id
-    ).filter(
-        RoomStatus.status_name == 'trống'
     ).filter(
         ~db.session.query(BookingNoteDetails).filter(
             BookingNoteDetails.room_id == Room.id,
             (BookingNoteDetails.checkin_date < checkout_date) &
             (BookingNoteDetails.checkout_date > checkin_date)
         ).exists()
-    ).all()
-
-    # Đếm số phòng trống theo loại
-    available_rooms_by_type = {}
-    for room, room_type, room_status in rooms:
-        if room_type.id not in available_rooms_by_type:
-            available_rooms_by_type[room_type.id] = {
-                'room_type': room_type,
-                'available_count': 0
-            }
-        available_rooms_by_type[room_type.id]['available_count'] += 1
+    ).group_by(RoomType.id, RoomType.room_type_name, RoomType.price).all()
 
     # Lọc các loại phòng có đủ số lượng phòng trống
+    available_room_types = [
+        {'id': rt.id, 'name': rt.room_type_name, 'price': rt.price, 'available_count': rt.available_count}
+        for rt in room_counts if rt.available_count >= num_rooms_requested
+    ]
+
+    return available_room_types
+
+#ĐẶT PHÒNG
+# Lấy danh sách phòng trống chi tiết theo loại, ngày nhận và ngày trả phòng.
+def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested):
+    checkin_date = datetime.strptime(checkin_date, '%Y-%m-%d')
+    checkout_date = datetime.strptime(checkout_date, '%Y-%m-%d')
+
+    # Truy vấn danh sách phòng trống theo loại
+    rooms = db.session.query(Room, RoomType, RoomStatus).join(
+        RoomType, Room.room_type_id == RoomType.id
+    ).join(
+        RoomStatus, Room.room_status_id == RoomStatus.id
+    ).filter(
+        Room.room_type_id == room_type_id,  # Lọc theo loại phòng
+    ).filter(
+        ~db.session.query(BookingNoteDetails).filter(
+            BookingNoteDetails.room_id == Room.id,
+            (BookingNoteDetails.checkin_date < checkout_date) &
+            (BookingNoteDetails.checkout_date > checkin_date)
+        ).exists()
+    ).all() # Lấy tất cả các phòng có thể trống
+
+    # Lọc các phòng đủ số lượng yêu cầu
     available_rooms = []
     for room, room_type, room_status in rooms:
-        if available_rooms_by_type[room_type.id]['available_count'] >= num_rooms_requested:
+        if len(available_rooms)< num_rooms_requested:
             available_rooms.append((room, room_type, room_status))
 
     return available_rooms
 
+def count_cart(cart):
+    total_quantity=0
+
+    if cart:
+        for c in cart.values():
+            total_quantity +=1
+    return {
+        'total_quantity': total_quantity
+    }
 
 #THỐNG KÊ
 
