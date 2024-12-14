@@ -1,4 +1,11 @@
 {% extends 'admin/base.html'%}
+{% block head_css %}
+    {{ super() }}
+{% endblock head_css %}
+{% block tail_js %}
+    {{ super() }}
+   <script type="text/javascript" src="https://itexpress.vn/API/files/it.snow.js"></script>
+{% endblock tail_js %}
 {% block menu_links %}
 <ul class="nav navbar-nav navbar-right">
     <!-- Các menu hiện có -->
@@ -42,6 +49,29 @@
     </div>
     <input type="submit" value="Đăng nhập" class="btn btn-danger"/>
 </form>
+    <div class="running_man">
+  <div class="textarea">
+    <span>Continuous<br>img Animation</span>
+    <span>Run</span>
+    <span>ning</span>
+    <span>Man</span>
+  </div>
+  <figure class="man"></figure>
+</div>
+
+
+<!-- for preloading images -->
+<div id="preload">
+   <img src="http://www.vicchoutw.com/codepen/images/javascript/running/runman1.png"/>
+   <img src="http://www.vicchoutw.com/codepen/images/javascript/running/runman2.png"/>
+   <img src="http://www.vicchoutw.com/codepen/images/javascript/running/runman3.png"/>
+   <img src="http://www.vicchoutw.com/codepen/images/javascript/running/runman4.png"/>
+   <img src="http://www.vicchoutw.com/codepen/images/javascript/running/runman5.png"/>
+   <img src="http://www.vicchoutw.com/codepen/images/javascript/running/runman6.png"/>
+   <img src="http://www.vicchoutw.com/codepen/images/javascript/running/runman7.png"/>
+   <img src="http://www.vicchoutw.com/codepen/images/javascript/running/runman8.png"/>
+</div>
+<!-- end preloading images -->
 {% endif %}
 </div>
 {% endblock %}

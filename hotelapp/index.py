@@ -1,8 +1,7 @@
 import datetime
 
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for,flash
 from hotelapp import app, login
-
 from flask_login import login_user,logout_user
 import utils
 import cloudinary.uploader
@@ -16,6 +15,28 @@ def home():
     rooms=utils.room_list()
     return render_template('index.html',roomtypes=rt,rooms=rooms)
 
+@app.route('/upload', methods=['POST'])
+def upload_image():
+    if 'image' not in request.files:
+        flash("Không có tệp hình ảnh nào được chọn.", "error")
+        return redirect(request.url)
+
+    file = request.files['image']
+    if file.filename == '':
+        flash("Tệp không có tên.", "error")
+        return redirect(request.url)
+
+    if file:
+        try:
+            # Tải lên Cloudinary
+            upload_result = cloudinary.uploader.upload(file)
+            image_url = upload_result['secure_url']
+            flash("Tải ảnh lên thành công!", "success")
+            # Cập nhật vào cơ sở dữ liệu hoặc thực hiện thao tác khác
+            return redirect('/success')
+        except Exception as e:
+            flash(f"Lỗi tải ảnh lên: {str(e)}", "error")
+            return redirect(request.url)
 #Tìm phòng
 @app.route('/find_room')
 def find_room():

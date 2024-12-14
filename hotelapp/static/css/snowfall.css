@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css?family=Luckiest+Guy');
+
+* {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background: #f8efe2;
+  // position: relative;
+}
+
+#preload {
+  display: none;
+}
+
+.running_man {
+  width: 570px;
+  height: 270px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+
+  .man {
+    z-index: 10;
+    top: -130px;
+    left: -600px;
+    position: absolute;
+    width: 640px;
+    height: 480px;
+    // transition: all 1000ms;
+    background-size: cover;
+    // background-image: url('http://www.vicchoutw.com/codepen/images/javascript/running/runman1.png')
+  }
+
+  .textarea span {
+    font-size: 24px;
+    display: block;
+    color: #1d1f20;
+    opacity: 0;
+    font-family: 'Luckiest Guy', cursive;
+
+    &:nth-child(1) {
+      margin-left: 7px;
+      transform: translateX(-100px);
+      transition: all 400ms 400ms;
+    }
+
+    &:nth-child(2) {
+      z-index: 12;
+      font-size: 160px;
+      color: #1d1f20;
+      transform: translateX(-100px);
+      transition: all 400ms 600ms;
+      position: relative;
+    }
+
+    &:nth-child(3) {
+      z-index: 9;
+      position: absolute;
+      display: block;
+      font-size: 120px;
+      margin: -135px 0 0 300px;
+      transform: translateX(-100px);
+      transition: all 400ms 700ms;
+    }
+
+    &:nth-child(4) {
+      color: #ef3a55;
+      margin-top: -45px;
+      font-size: 130px;
+      transform: translateX(-100px);
+      transition: all 400ms 800ms;
+    }
+  }
+
+  &.active {
+    .textarea span {
+      transform: translateX(0px);
+      opacity: 0.95;
+    }
+  }
+}
+
