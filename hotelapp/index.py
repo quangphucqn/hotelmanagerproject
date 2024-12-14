@@ -6,7 +6,7 @@ from hotelapp import app, login
 from flask_login import login_user,logout_user
 import utils
 import cloudinary.uploader
-
+from sqlalchemy.orm import Session
 from hotelapp.models import User
 
 #Trang chủ
@@ -162,6 +162,25 @@ def common_response():
 @login.user_loader
 def user_load(user_id):
     return utils.get_user_by_id(user_id=user_id)
+
+
+@app.route('/employee')
+def employee():
+    return render_template('giaodiennhanvien.html')
+
+
+#Lập phiếu thuê đã có phiếu đặt
+@app.route('/create_rental_note', methods=['GET', 'POST'])
+def create_rental_note():
+    if request.method == 'GET':
+        customer_name = request.args.get('customer-name')
+        phone_number = request.args.get('phone-number')
+        if customer_name== "ll" and phone_number=="kk":
+            u = utils.create_rental_note(5)
+            return u
+        booking_notes = utils.find_booking_note(customer_name,phone_number)
+        return render_template('lapphieuthuephong.html',booking_notes=booking_notes)
+
 
 
 

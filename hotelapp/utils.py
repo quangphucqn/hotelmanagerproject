@@ -7,7 +7,8 @@ from datetime import datetime
 from sqlalchemy import func
 from sqlalchemy.sql import extract
 import hashlib
-
+from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import Session
 #Tải quốc tịch
 def load_nationals():
     return National.query.all()
@@ -197,3 +198,38 @@ def room_month_stats(year):
             .group_by(extract('month', BookingNoteDetails.checkin_date))  \
             .order_by(extract('month', BookingNoteDetails.checkin_date))  \
             .all()
+
+
+def find_booking_note(customer_name, phone_number):
+    results = (
+        db.session.query(BookingNote)
+        .filter(
+            BookingNote.customer_name == customer_name,
+            BookingNote.phone_number == phone_number,
+            # BookingNote.rental_notes == None  # Loại bỏ các BookingNote đã có RentalNote
+        )
+        .options(
+            joinedload(BookingNote.rooms)  # Load BookingNoteDetails liên kết
+            .joinedload(BookingNoteDetails.room)  # Load Room từ BookingNoteDetails
+            .joinedload(Room.room_type)  # Load RoomType từ Room
+        )
+        .all()
+    )
+    if results:
+     return results
+    if not results :
+        return None
+def create_rental_note(booking_note_id):
+    id = (
+        db.session.query(BookingNote)
+        .filter(
+            BookingNote.id == booking_note_id,
+            BookingNote.rental_notes == None
+        ).all()
+    )
+    if id:
+     rental_note = RentalNote(booking_note_id=id)
+     return "lập phiếu thành công"
+    else:
+        return "Lập phiếu thất bại"
+
