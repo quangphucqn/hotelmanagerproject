@@ -72,20 +72,23 @@ class LogoutView(BaseView):
     def is_accessible(self):
         return current_user.is_authenticated
 
+
 class StatsView(BaseView):
     @expose('/')
     def index(self):
-        kw = request.args.get('kw')
         from_date = request.args.get('from_date')
         to_date = request.args.get('to_date')
-        year = request.args.get('year', datetime.now().year)
+        month_stats, grand_cost = utils.monthly_revenue_report(from_date=from_date, to_date=to_date)
+        density_stats = utils.usage_density_report(from_date=from_date, to_date=to_date)
+
         return self.render('admin/stats.html',
-                           month_stats=utils.room_month_stats(year=year),
-                           stats=utils.room_type_stats(kw=kw,
-                                                     from_date=from_date,
-                                                     to_date=to_date))
+                           month_stats=month_stats,
+                           grand_cost=grand_cost,
+                           density_stats=density_stats)
+
     def is_accessible(self):
         return current_user.is_authenticated and current_user.user_role.role_name == 'ADMIN'
+
 
 class MyAdminIndex(AdminIndexView):
     @expose('/')

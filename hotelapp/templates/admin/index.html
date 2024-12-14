@@ -1,8 +1,34 @@
 {% extends 'admin/base.html'%}
+{% block menu_links %}
+<ul class="nav navbar-nav navbar-right">
+    <!-- Các menu hiện có -->
+    {{ layout.menu_links() }}
+
+    <!-- Thông tin người dùng -->
+    {% if current_user.is_authenticated %}
+            <li class="nav-item" style="display: flex; align-items: center; justify-content: space-between; padding: 0 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;margin-right:20px">
+            {% if current_user.avatar %}
+                     <img src="{{ url_for('static', filename='images/admin.jpg') }}" class="rounded-circle" width="30" alt="{{ current_user.name }}"
+                        style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;">
+            {% else %}
+                    <img src="{{ url_for('static', filename='images/default.jpg') }}" class="rounded-circle" width="30" alt="{{ current_user.name }}"
+                 style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;">
+            {% endif %}
+                    <span style="font-size: 16px; font-weight: bold; color: antiquewhite; margin-left: 8px;">{{ current_user.username }}</span>
+                </div>
+    {% endif %}
+</ul>
+{% endblock %}
 
 {% block body %}
+<div id="snowfall"></div>
+<div style="position: relative;">
 {% if current_user.is_authenticated %}
-    <h1> WELCOME <span class="text-info"> {{ current_user.name }} TO ADMINISTRATION WEBSITE!!!</span></h1>
+        <div style="position: relative; z-index: 1;">
+    <h1> WELCOME <span class="text-info text-center"> {{ current_user.name }} TO ADMINISTRATION WEBSITE!!!</span></h1>
+    <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Avatar Logo" style="position: absolute; top: 0; left: 0; z-index: -1;width:100%;opacity:20%"/>
+    </div>
 {% else %}
 <h1 class="text-center text-danger">ĐĂNG NHẬP QUẢN TRỊ</h1>
 <form method="post" action="{{ url_for('login_admin')}}">
@@ -16,7 +42,6 @@
     </div>
     <input type="submit" value="Đăng nhập" class="btn btn-danger"/>
 </form>
-
 {% endif %}
-
+</div>
 {% endblock %}

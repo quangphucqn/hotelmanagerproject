@@ -164,6 +164,7 @@ def user_load(user_id):
     return utils.get_user_by_id(user_id=user_id)
 
 
+
 @app.route('/employee')
 def employee():
     return render_template('giaodiennhanvien.html')
@@ -180,8 +181,6 @@ def create_rental_note():
             return u
         booking_notes = utils.find_booking_note(customer_name,phone_number)
         return render_template('lapphieuthuephong.html',booking_notes=booking_notes)
-
-
 
 
 
