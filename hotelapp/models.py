@@ -22,7 +22,7 @@ class National(BaseModel):
     __tablename__ = 'national'
     country_name = Column(String(50), nullable=False)
     coefficient = Column(Float, nullable=False)
-    users = relationship('User', backref='national', lazy=True)
+    booking_notes = relationship('BookingNote', backref='national', lazy=True)
 
     def __str__(self):
         return self.country_name
@@ -36,50 +36,10 @@ class User(BaseModel, UserMixin):
     birthday = Column(Date, nullable=False)
     avatar = Column(String(100))
     user_role_id = Column(Integer, ForeignKey('user_role.id'), nullable=False)
-    national_id = Column(Integer, ForeignKey('national.id'), nullable=False)
     booking_notes = relationship('BookingNote', backref='user', lazy=True)
 
     def __str__(self):
         return self.name
-
-class BookingNoteDetails(BaseModel):
-    __tablename__ = 'booking_note_details'
-    checkin_date = Column(DateTime, nullable=False)
-    checkout_date = Column(DateTime, nullable=False)
-    number_people = Column(Integer, nullable=False)
-    booking_note_id = Column(Integer, ForeignKey('booking_note.id'), nullable=False)
-    room_id = Column(Integer, ForeignKey('room.id'), nullable=False, primary_key=True)
-
-class BookingNote(BaseModel):
-    __tablename__ = 'booking_note'
-    created_date = Column(DateTime, default=datetime.now(), nullable=False)
-    customer_name = Column(String(50), nullable=False)
-    phone_number = Column(String(10), nullable=False)
-    cccd = Column(String(12), nullable=False)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    rooms = relationship('BookingNoteDetails', backref='booking_note')
-    rental_notes = relationship('RentalNote', back_populates='booking_note',uselist=False)
-
-    def __str__(self):
-        return str(self.id)
-
-class RoomType(BaseModel):
-    __tablename__ = 'room_type'
-    room_type_name = Column(String(50), nullable=False)
-    price = Column(Float, nullable=False)
-    surcharge = Column(Float, nullable=False)
-    rooms = relationship('Room', backref='room_type', lazy=True)
-
-    def __str__(self):
-        return self.room_type_name
-
-class RoomStatus(BaseModel):
-    __tablename__ = 'room_status'
-    status_name = Column(String(50), nullable=False)
-    rooms = relationship('Room', backref='room_status', lazy=True)
-
-    def __str__(self):
-        return self.status_name
 
 class Room(BaseModel):
     __tablename__ = 'room'
@@ -102,6 +62,49 @@ class RentalNote(BaseModel):
 
     def __str__(self):
         return str(self.id)
+
+
+class BookingNoteDetails(BaseModel):
+    __tablename__ = 'booking_note_details'
+    checkin_date = Column(DateTime, nullable=False)
+    checkout_date = Column(DateTime, nullable=False)
+    number_people = Column(Integer, nullable=False)
+    booking_note_id = Column(Integer, ForeignKey('booking_note.id'), nullable=False)
+    room_id = Column(Integer, ForeignKey('room.id'), nullable=False, primary_key=True)
+
+class BookingNote(BaseModel):
+    __tablename__ = 'booking_note'
+    created_date = Column(DateTime, default=datetime.now(), nullable=False)
+    customer_name = Column(String(50), nullable=False)
+    phone_number = Column(String(10), nullable=False)
+    cccd = Column(String(12), nullable=False)
+    email = Column(String(50))
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    rooms = relationship('BookingNoteDetails', backref='booking_note')
+    rental_notes = relationship('RentalNote', back_populates='booking_note',uselist=False)
+    national_id = Column(Integer, ForeignKey('national.id'), nullable=False)
+
+    def __str__(self):
+        return str(self.id)
+
+class RoomType(BaseModel):
+    __tablename__ = 'room_type'
+    room_type_name = Column(String(50), nullable=False)
+    price = Column(Float, nullable=False)
+    surcharge = Column(Float, nullable=False)
+    rooms = relationship('Room', backref='room_type', lazy=True)
+    image=Column(String(100), nullable=False)
+    def __str__(self):
+        return self.room_type_name
+
+class RoomStatus(BaseModel):
+    __tablename__ = 'room_status'
+    status_name = Column(String(50), nullable=False)
+    rooms = relationship('Room', backref='room_status', lazy=True)
+
+    def __str__(self):
+        return self.status_name
+
 
 class Bill(BaseModel):
     __tablename__ = 'bill'
@@ -131,27 +134,27 @@ if __name__ == '__main__':
         db.session.add(r2)
         db.session.add(r3)
         password_1 = str(hashlib.md5('admin'.encode('utf-8')).hexdigest())
-        u1 = User(username='admin', password=password_1, name='admin', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='images/admin.jpg', user_role_id=1, national_id=1)
+        u1 = User(username='admin', password=password_1, name='admin', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='images/admin.jpg', user_role_id=1)
         password_2 = str(hashlib.md5('employee'.encode('utf-8')).hexdigest())
-        u2 = User(username='employee', password=password_2, name='employee', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='images/admin.jpg', user_role_id=2, national_id=1)
+        u2 = User(username='employee', password=password_2, name='employee', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='images/admin.jpg', user_role_id=2)
         password_3 = str(hashlib.md5('phuc'.encode('utf-8')).hexdigest())
-        u3 = User(username='phuc', password=password_3, name='phuc', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='images/default.jpg', user_role_id=3, national_id=1)
+        u3 = User(username='phuc', password=password_3, name='phuc', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='default.jpg', user_role_id=3)
         password_4 = str(hashlib.md5('nhat'.encode('utf-8')).hexdigest())
-        u4 = User(username='nhat', password=password_4, name='nhat', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='images/default.jpg', user_role_id=3, national_id=2)
+        u4 = User(username='nhat', password=password_4, name='nhat', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='default.jpg', user_role_id=3)
         db.session.add(u1)
         db.session.add(u2)
         db.session.add(u3)
         db.session.add(u4)
 
-        rot1 = RoomType(room_type_name='Classic Sea View', price=550000, surcharge=0.25)
-        rot2 = RoomType(room_type_name='Penthouse with Sea View', price=1000000, surcharge=0.25)
-        rot3 = RoomType(room_type_name='Queen Resort Classic Ocean View', price=1200000, surcharge=0.25)
-        rot4 = RoomType(room_type_name='Queen Classic Panoramic Ocean View', price=1500000, surcharge=0.25)
-        rot5 = RoomType(room_type_name='King Terrace Suite Ocean View', price=1700000, surcharge=0.25)
-        rot6 = RoomType(room_type_name='King Club Suite Panoramic Oceanview', price=2000000, surcharge=0.25)
-        rot7 = RoomType(room_type_name='Bedroom Spa Lagoon Villa', price=3000000, surcharge=0.25)
-        rot8 = RoomType(room_type_name='Bedroom Sun Peninsula Residence Villa', price=3500000, surcharge=0.25)
-        rot9 = RoomType(room_type_name='Bedroom Pool Villa Ocean View', price=4000000, surcharge=0.25)
+        rot1 = RoomType(room_type_name='Classic Sea View', price=550000, surcharge=0.25,image='images/classic.jpg')
+        rot2 = RoomType(room_type_name='Penthouse with Sea View', price=1000000, surcharge=0.25,image='images/classic.jpg')
+        rot3 = RoomType(room_type_name='Queen Resort Classic Ocean View', price=1200000, surcharge=0.25,image='images/classic.jpg')
+        rot4 = RoomType(room_type_name='Queen Classic Panoramic Ocean View', price=1500000, surcharge=0.25,image='images/classic.jpg')
+        rot5 = RoomType(room_type_name='King Terrace Suite Ocean View', price=1700000, surcharge=0.25,image='images/classic.jpg')
+        rot6 = RoomType(room_type_name='King Club Suite Panoramic Oceanview', price=2000000, surcharge=0.25,image='images/classic.jpg')
+        rot7 = RoomType(room_type_name='Bedroom Spa Lagoon Villa', price=3000000, surcharge=0.25,image='images/classic.jpg')
+        rot8 = RoomType(room_type_name='Bedroom Sun Peninsula Residence Villa', price=3500000, surcharge=0.25,image='images/classic.jpg')
+        rot9 = RoomType(room_type_name='Bedroom Pool Villa Ocean View', price=4000000, surcharge=0.25,image='images/classic.jpg')
         db.session.add(rot1)
         db.session.add(rot2)
         db.session.add(rot3)
@@ -224,8 +227,8 @@ if __name__ == '__main__':
         db.session.add(r26)
         db.session.add(r27)
 
-        b1 = BookingNote(customer_name='Lê Hoàng Phúc', phone_number='0337367643', cccd='051204010012', user_id=3)
-        b2 = BookingNote(customer_name='Nguyen Thành Nhật', phone_number='0987654321', cccd='098765432112', user_id=4)
+        b1 = BookingNote(customer_name='Lê Hoàng Phúc', phone_number='0337367643', cccd='051204010012', user_id=3,national_id=1)
+        b2 = BookingNote(customer_name='Nguyen Thành Nhật', phone_number='0987654321', cccd='098765432112', user_id=4,national_id=1)
         db.session.add(b1)
         db.session.add(b2)
 
