@@ -8,7 +8,8 @@ from datetime import datetime
 from sqlalchemy import func
 from sqlalchemy.sql import extract
 import hashlib
-
+from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import Session
 #Tải quốc tịch
 def load_nationals():
     return National.query.all()
@@ -135,41 +136,73 @@ def room_list():
     ).all()
     return rooms
 
+# TÌM PHÒNG
 # Lấy danh sách phòng trống
 def find_room(checkin_date, checkout_date, num_rooms_requested):
-    # Truy vấn phòng trống theo loại và trạng thái
-    rooms = db.session.query(Room, RoomType, RoomStatus).join(
-        RoomType, Room.room_type_id == RoomType.id
+    # Truy vấn số lượng phòng trống theo loại
+    room_counts = db.session.query(
+        RoomType.id,
+        RoomType.room_type_name,
+        RoomType.price,
+        func.count(Room.id).label('available_count')
+    ).join(
+        Room, Room.room_type_id == RoomType.id
     ).join(
         RoomStatus, Room.room_status_id == RoomStatus.id
-    ).filter(
-        RoomStatus.status_name == 'trống'
     ).filter(
         ~db.session.query(BookingNoteDetails).filter(
             BookingNoteDetails.room_id == Room.id,
             (BookingNoteDetails.checkin_date < checkout_date) &
             (BookingNoteDetails.checkout_date > checkin_date)
         ).exists()
-    ).all()
-
-    # Đếm số phòng trống theo loại
-    available_rooms_by_type = {}
-    for room, room_type, room_status in rooms:
-        if room_type.id not in available_rooms_by_type:
-            available_rooms_by_type[room_type.id] = {
-                'room_type': room_type,
-                'available_count': 0
-            }
-        available_rooms_by_type[room_type.id]['available_count'] += 1
+    ).group_by(RoomType.id, RoomType.room_type_name, RoomType.price).all()
 
     # Lọc các loại phòng có đủ số lượng phòng trống
+    available_room_types = [
+        {'id': rt.id, 'name': rt.room_type_name, 'price': rt.price, 'available_count': rt.available_count}
+        for rt in room_counts if rt.available_count >= num_rooms_requested
+    ]
+
+    return available_room_types
+
+#ĐẶT PHÒNG
+# Lấy danh sách phòng trống chi tiết theo loại, ngày nhận và ngày trả phòng.
+def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested):
+    checkin_date = datetime.strptime(checkin_date, '%Y-%m-%d')
+    checkout_date = datetime.strptime(checkout_date, '%Y-%m-%d')
+
+    # Truy vấn danh sách phòng trống theo loại
+    rooms = db.session.query(Room, RoomType, RoomStatus).join(
+        RoomType, Room.room_type_id == RoomType.id
+    ).join(
+        RoomStatus, Room.room_status_id == RoomStatus.id
+    ).filter(
+        Room.room_type_id == room_type_id,  # Lọc theo loại phòng
+    ).filter(
+        ~db.session.query(BookingNoteDetails).filter(
+            BookingNoteDetails.room_id == Room.id,
+            (BookingNoteDetails.checkin_date < checkout_date) &
+            (BookingNoteDetails.checkout_date > checkin_date)
+        ).exists()
+    ).all() # Lấy tất cả các phòng có thể trống
+
+    # Lọc các phòng đủ số lượng yêu cầu
     available_rooms = []
     for room, room_type, room_status in rooms:
-        if available_rooms_by_type[room_type.id]['available_count'] >= num_rooms_requested:
+        if len(available_rooms)< num_rooms_requested:
             available_rooms.append((room, room_type, room_status))
 
     return available_rooms
 
+def count_cart(cart):
+    total_quantity=0
+
+    if cart:
+        for c in cart.values():
+            total_quantity +=1
+    return {
+        'total_quantity': total_quantity
+    }
 
 #THỐNG KÊ
 
@@ -288,4 +321,49 @@ if __name__ == '__main__':
     with app.app_context():
         print(monthly_revenue_report())
         print(usage_density_report())
+
+
+def room_month_stats(year):
+    return db.session.query(
+            extract('month', BookingNoteDetails.checkin_date).label('month'),  # Lấy tháng từ ngày check-in
+            func.sum(Bill.id * Bill.total_cost)) \
+            .join(Room, Room.id == BookingNoteDetails.room_id) \
+            .filter(extract('year', BookingNoteDetails.checkin_date) == year) \
+            .group_by(extract('month', BookingNoteDetails.checkin_date))  \
+            .order_by(extract('month', BookingNoteDetails.checkin_date))  \
+            .all()
+
+
+def find_booking_note(customer_name, phone_number):
+    results = (
+        db.session.query(BookingNote)
+        .filter(
+            BookingNote.customer_name == customer_name,
+            BookingNote.phone_number == phone_number,
+            # BookingNote.rental_notes == None  # Loại bỏ các BookingNote đã có RentalNote
+        )
+        .options(
+            joinedload(BookingNote.rooms)  # Load BookingNoteDetails liên kết
+            .joinedload(BookingNoteDetails.room)  # Load Room từ BookingNoteDetails
+            .joinedload(Room.room_type)  # Load RoomType từ Room
+        )
+        .all()
+    )
+    if results:
+     return results
+    if not results :
+        return None
+def create_rental_note(booking_note_id):
+    id = (
+        db.session.query(BookingNote)
+        .filter(
+            BookingNote.id == booking_note_id,
+            BookingNote.rental_notes == None
+        ).all()
+    )
+    if id:
+     rental_note = RentalNote(booking_note_id=id)
+     return "lập phiếu thành công"
+    else:
+        return "Lập phiếu thất bại"
 
