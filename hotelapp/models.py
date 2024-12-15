@@ -6,20 +6,18 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from flask_login import UserMixin
 
-class BaseModel(db.Model):
-    __abstract__ = True
-    id = Column(Integer, primary_key=True, autoincrement=True)
-
-class UserRole(BaseModel):
+class UserRole(db.Model):
     __tablename__ = 'user_role'
+    id = Column(Integer, primary_key=True, autoincrement=True)
     role_name = Column(String(45), nullable=False, unique=True)
     users = relationship('User', backref='user_role', lazy=True)
 
     def __str__(self):
         return self.role_name
 
-class National(BaseModel):
+class National(db.Model):
     __tablename__ = 'national'
+    id = Column(Integer, primary_key=True, autoincrement=True)
     country_name = Column(String(50), nullable=False)
     coefficient = Column(Float, nullable=False)
     booking_notes = relationship('BookingNote', backref='national', lazy=True)
@@ -27,8 +25,9 @@ class National(BaseModel):
     def __str__(self):
         return self.country_name
 
-class User(BaseModel, UserMixin):
+class User(db.Model, UserMixin):
     __tablename__ = 'user'
+    id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(50), nullable=False, unique=True)
     password = Column(String(50), nullable=False)
     name = Column(String(50), nullable=False)
@@ -41,8 +40,9 @@ class User(BaseModel, UserMixin):
     def __str__(self):
         return self.name
 
-class Room(BaseModel):
+class Room(db.Model):
     __tablename__ = 'room'
+    id = Column(Integer, primary_key=True, autoincrement=True)
     room_address = Column(String(50), nullable=False)
     max_people = Column(Integer, nullable=False)
     image = Column(String(100), nullable=False)
@@ -53,8 +53,9 @@ class Room(BaseModel):
     def __str__(self):
         return self.room_address
 
-class RentalNote(BaseModel):
+class RentalNote(db.Model):
     __tablename__ = 'rental_note'
+    id = Column(Integer, primary_key=True, autoincrement=True)
     created_date = Column(DateTime, default=datetime.now(), nullable=False)
     booking_note_id = Column(Integer, ForeignKey('booking_note.id'), nullable=False,unique=True)
     bills = relationship('Bill', back_populates='rental_notes', uselist=False, cascade='all, delete-orphan')
@@ -64,16 +65,20 @@ class RentalNote(BaseModel):
         return str(self.id)
 
 
-class BookingNoteDetails(BaseModel):
+class BookingNoteDetails(db.Model):
     __tablename__ = 'booking_note_details'
-    checkin_date = Column(DateTime, nullable=False)
+    checkin_date = Column(DateTime,primary_key=True, nullable=False)
     checkout_date = Column(DateTime, nullable=False)
     number_people = Column(Integer, nullable=False)
     booking_note_id = Column(Integer, ForeignKey('booking_note.id'), nullable=False)
     room_id = Column(Integer, ForeignKey('room.id'), nullable=False, primary_key=True)
 
-class BookingNote(BaseModel):
+
+
+
+class BookingNote(db.Model):
     __tablename__ = 'booking_note'
+    id = Column(Integer, primary_key=True, autoincrement=True)
     created_date = Column(DateTime, default=datetime.now(), nullable=False)
     customer_name = Column(String(50), nullable=False)
     phone_number = Column(String(10), nullable=False)
@@ -87,8 +92,9 @@ class BookingNote(BaseModel):
     def __str__(self):
         return str(self.id)
 
-class RoomType(BaseModel):
+class RoomType(db.Model):
     __tablename__ = 'room_type'
+    id = Column(Integer, primary_key=True, autoincrement=True)
     room_type_name = Column(String(50), nullable=False)
     price = Column(Float, nullable=False)
     surcharge = Column(Float, nullable=False)
@@ -97,8 +103,9 @@ class RoomType(BaseModel):
     def __str__(self):
         return self.room_type_name
 
-class RoomStatus(BaseModel):
+class RoomStatus(db.Model):
     __tablename__ = 'room_status'
+    id = Column(Integer, primary_key=True, autoincrement=True)
     status_name = Column(String(50), nullable=False)
     rooms = relationship('Room', backref='room_status', lazy=True)
 
@@ -106,8 +113,9 @@ class RoomStatus(BaseModel):
         return self.status_name
 
 
-class Bill(BaseModel):
+class Bill(db.Model):
     __tablename__ = 'bill'
+    id = Column(Integer, primary_key=True, autoincrement=True)
     created_date = Column(DateTime, default=datetime.now(), nullable=False)
     total_cost = Column(Float, nullable=False)
     rental_note_id = Column(Integer, ForeignKey('rental_note.id'), nullable=False, unique=True)
@@ -134,7 +142,7 @@ if __name__ == '__main__':
         db.session.add(r2)
         db.session.add(r3)
         password_1 = str(hashlib.md5('admin'.encode('utf-8')).hexdigest())
-        u1 = User(username='admin', password=password_1, name='admin', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='images/admin.jpg', user_role_id=1)
+        u1 = User(username='admin', password= password_1, name='admin', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='images/admin.jpg', user_role_id=1)
         password_2 = str(hashlib.md5('employee'.encode('utf-8')).hexdigest())
         u2 = User(username='employee', password=password_2, name='employee', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='images/admin.jpg', user_role_id=2)
         password_3 = str(hashlib.md5('phuc'.encode('utf-8')).hexdigest())
@@ -192,6 +200,21 @@ if __name__ == '__main__':
         db.session.add(re1)
         db.session.add(re2)
 
+        b10 = BookingNote(customer_name='Lê Hoàng Phúc', phone_number='0337367643', cccd='051204010012', user_id=3,
+                         national_id=1)
+        bnd10 = BookingNoteDetails(checkin_date=datetime(2024, 12, 5), checkout_date=datetime(2024, 12, 6),
+                                  number_people=2, booking_note_id=3, room_id=5)
+        bnd20 = BookingNoteDetails(checkin_date=datetime(2024, 12, 5), checkout_date=datetime(2024, 12, 6),
+                                  number_people=2, booking_note_id=3, room_id=4)
+        db.session.add(b10)
+        db.session.add(bnd10)
+        db.session.add(bnd20)
+        b20 = BookingNote(customer_name='Trần Quang Phục', phone_number='0987654321', cccd='051204010012', user_id=3,
+                         national_id=1)
+        bnd30 = BookingNoteDetails(checkin_date=datetime(2024, 12, 7), checkout_date=datetime(2024, 12, 6),
+                                  number_people=2, booking_note_id=4, room_id=5)
+        db.session.add(b20)
+        db.session.add(bnd30)
 
         db.session.commit()
 

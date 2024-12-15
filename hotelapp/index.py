@@ -1,6 +1,5 @@
 import datetime
-
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for,jsonify
 from hotelapp import app, login
 
 from flask_login import login_user,logout_user
@@ -171,18 +170,49 @@ def employee():
 
 
 #Lập phiếu thuê đã có phiếu đặt
-@app.route('/create_rental_note', methods=['GET', 'POST'])
-def create_rental_note():
-    if request.method == 'GET':
+# @app.route('/rental_note', methods=['GET', 'POST'])
+# def rental_note():
+#     if request.method == 'GET':
+#         customer_name = request.args.get('customer-name')
+#         phone_number = request.args.get('phone-number')
+#         if customer_name== "ll" and phone_number=="kk":
+#             u = utils.create_rental_note(5)
+#             return u
+#         booking_notes = utils.find_booking_note(customer_name,phone_number)
+#         return render_template('lapphieuthuephong.html',booking_notes=booking_notes)
+#
+@app.route('/rental_note', methods=['GET', 'POST'])
+def rental_note():
+    message = None  # Biến lưu thông báo trạng thái
+    booking_notes = []
+    if request.method == 'POST':
+        # Xử lý khi nhấn "Lập Phiếu Thuê"
+        booking_note_id = request.form.get('bk-id')
+        if booking_note_id:
+            result = utils.create_rental_note(booking_note_id)
+            if result:
+                message = "Lập phiếu thành công!"
+            else:
+                message = "Lập phiếu thất bại!"
+        # Cập nhật danh sách BookingNote sau khi lập phiếu
         customer_name = request.args.get('customer-name')
         phone_number = request.args.get('phone-number')
-        if customer_name== "ll" and phone_number=="kk":
-            u = utils.create_rental_note(5)
-            return u
-        booking_notes = utils.find_booking_note(customer_name,phone_number)
-        return render_template('lapphieuthuephong.html',booking_notes=booking_notes)
+        booking_notes = utils.find_booking_note(customer_name, phone_number) or []
+        booking_notes = [note for note in booking_notes if str(note.id) != booking_note_id]
 
-
+    elif request.method == 'GET':
+        # Xử lý tìm kiếm BookingNote
+        customer_name = request.args.get('customer-name')
+        phone_number = request.args.get('phone-number')
+        if customer_name or phone_number:
+            booking_notes = utils.find_booking_note(customer_name, phone_number) or []
+            if not booking_notes:
+                message = "Không tìm thấy BookingNote nào."
+    return render_template(
+        'lapphieuthuephong.html',
+        booking_notes=booking_notes,
+        message=message
+    )
 
 if __name__ == '__main__':
     from hotelapp.admin import*
