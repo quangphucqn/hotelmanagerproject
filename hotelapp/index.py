@@ -1,10 +1,9 @@
 import datetime
 from tabnanny import check
 
-from flask import render_template, request, redirect, url_for, session, jsonify, flash
+from flask import render_template, request, redirect, url_for,session,jsonify
 from hotelapp import app, login
-from models import BookingNote, BookingNoteDetails
-from flask_login import login_user,logout_user
+from flask_login import login_user,logout_user,login_required
 import utils
 import cloudinary.uploader
 from sqlalchemy.orm import Session
@@ -69,138 +68,58 @@ def find_room():
         adults=adults
     )
 # Chọn phòng vào giỏ hàng
-@app.route('/booking_room/<int:room_type_id>', methods=['GET', 'POST'])
+@app.route('/booking_room/<int:room_type_id>')
 def booking_room(room_type_id):
     checkin_date = request.args.get('checkin_date')
     checkout_date = request.args.get('checkout_date')
     num_rooms_requested = int(request.args.get('num_rooms_requested',1))
+
+    # Lấy danh sách phòng trống chi tiết theo loại
     available_rooms = utils.find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested)
     cart = session.get('cart', {})
-    for room in available_rooms[:num_rooms_requested]:
-        room_id = str(room.id)
-        if room_id not in cart:
+
+    return render_template('booking_room.html',cart=cart, available_rooms=available_rooms, checkin_date=checkin_date, checkout_date=checkout_date)
+
+@app.route('/api/add-cart',methods=['POST'])
+def add_to_cart():
+    data = request.json
+    room_id = str(data.get('room_id'))
+    checkin_date = data.get('checkin_date')
+    checkout_date = data.get('checkout_date')
+    action = data.get('action')
+    cart= session.get('cart')
+    if not cart:
+        cart={}
+        session['cart'] = cart
+
+    if action == 'add':
+        if room_id in cart:
+            return jsonify({'error': 'Phòng này đã có trong giỏ hàng!'})
+        else:
             cart[room_id] = {
-                'room_id': room.id,
-                'room_address':room.room_address,
-                'room_type_name': room.room_type.room_type_name,
+                'room_id': room_id,
                 'checkin_date': checkin_date,
                 'checkout_date': checkout_date,
             }
-    session['cart'] = cart
-
-    return render_template('booking_room.html', available_rooms=available_rooms, cart=cart, checkin_date=checkin_date,
-                           checkout_date=checkout_date,num_rooms_requested=num_rooms_requested)
-
-
-    # xác nhận đặt phòng
-@app.route('/confirm_booking', methods=['GET', 'POST'])
-def confirm_booking():
-        cart = session.get('cart', {})  # Lấy giỏ hàng từ session
-
-        if request.method == 'POST':
-            # Lấy dữ liệu từ form
-            customer_name = request.form.get('customer_name')
-            phone_number = request.form.get('phone_number')
-            cccd = request.form.get('cccd')
-            email = request.form.get('email')
-            national_id = int(request.form.get('national_id'))
-
-            # Lấy dữ liệu phòng từ giỏ hàng
-            room_data = []
-            for room_id, room in cart.items():
-                number_people = int(request.form.get(f'number_people_{room_id}', 1))
-                room_data.append({
-                    'room_id': room_id,
-                    'checkin_date': room['checkin_date'],
-                    'checkout_date': room['checkout_date'],
-                    'number_people': number_people
-                })
-
-            # Tính tiền sơ bộ
-            national_coefficient = 1.5 if national_id != 1 else 1  # Khách nước ngoài nhân hệ số 1.5
-            total_cost =utils.calculate_cost(room_data, national_coefficient)
-
-            # Lưu thông tin đặt phòng vào database
-            booking_note = BookingNote(
-                user_id=current_user.id,
-                customer_name=customer_name,
-                phone_number=phone_number,
-                cccd=cccd,
-                email=email,
-                national_id=national_id,
-                created_date=datetime.now()
-            )
-            db.session.add(booking_note)
-            db.session.commit()
-
-            # Lưu chi tiết từng phòng
-            for data in room_data:
-                booking_detail = BookingNoteDetails(
-                    checkin_date=data['checkin_date'],
-                    checkout_date=data['checkout_date'],
-                    number_people=data['number_people'],
-                    booking_note_id=booking_note.id,
-                    room_id=data['room_id']
-                )
-                db.session.add(booking_detail)
-
-            db.session.commit()
-
-            # Xóa giỏ hàng và hiển thị thông báo thành công
-            session.pop('cart', None)
-            flash('Đặt phòng thành công!', 'success')
-            return redirect(url_for('index'))
-
-        return render_template('confirm_booking.html', cart=cart)
-    # Lấy danh sách phòng trống chi tiết theo loại
-    # available_rooms = utils.find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested)
-    # cart = session.get('cart', {})
-    #
-    # return render_template('booking_room.html',cart=cart, available_rooms=available_rooms, checkin_date=checkin_date, checkout_date=checkout_date)
-
-# @app.route('/api/add-cart',methods=['POST'])
-# def add_to_cart():
-#     data = request.json
-#     room_id = str(data.get('room_id'))
-#     checkin_date = data.get('checkin_date')
-#     checkout_date = data.get('checkout_date')
-#     action = data.get('action')
-#     cart= session.get('cart')
-#     if not cart:
-#         cart={}
-#         session['cart'] = cart
-#
-#     if action == 'add':
-#         if room_id in cart:
-#             return jsonify({'error': 'Phòng này đã có trong giỏ hàng!'})
-#         else:
-#             cart[room_id] = {
-#                 'room_id': room_id,
-#                 'checkin_date': checkin_date,
-#                 'checkout_date': checkout_date,
-#             }
-#             session['cart'] = cart
-#             return jsonify({'message': 'Đã thêm phòng vào giỏ hàng!'})
-#     elif action == 'remove':
-#         if room_id in cart:  # Kiểm tra nếu phòng có trong giỏ hàng
-#             del cart[room_id]  # Xóa phòng khỏi giỏ hàng
-#             session['cart'] = cart  # Cập nhật session
-#             return jsonify({'message': 'Đã xóa phòng khỏi giỏ hàng!'})
-#         else:
-#             return jsonify({'error': 'Phòng này không tồn tại trong giỏ hàng!'})
-#     return jsonify({'error': 'Hành động không hợp lệ!'})
+            session['cart'] = cart
+            return jsonify({'message': 'Đã thêm phòng vào giỏ hàng!'})
+    elif action == 'remove':
+        if room_id in cart:  # Kiểm tra nếu phòng có trong giỏ hàng
+            del cart[room_id]  # Xóa phòng khỏi giỏ hàng
+            session['cart'] = cart  # Cập nhật session
+            return jsonify({'message': 'Đã xóa phòng khỏi giỏ hàng!'})
+        else:
+            return jsonify({'error': 'Phòng này không tồn tại trong giỏ hàng!'})
+    return jsonify({'error': 'Hành động không hợp lệ!'})
 
 @app.route('/cart')
 def cart():
     cart = session.get('cart', {})
     return render_template('cart.html', cart=cart)
-
-@app.route('/clear-session', methods=['GET'])
+@app.route('/clear_session')
 def clear_session():
-    # Xóa session khi người dùng nhấn nút "Trở lại"
-    session.pop('cart', None)
-
-    return redirect(url_for('find_room'))  # Quay lại trang tìm phòng
+    session.clear()  # Xóa toàn bộ session
+    return 'Session đã được xóa!'
 
 
 #Đăng ký
@@ -213,7 +132,6 @@ def user_register():
         password = request.form.get('password')
         email = request.form.get('email')
         birthday = request.form.get('birthday')
-        national_id = request.form.get('national_id')
         confirm = request.form.get('confirm')
         avatar = request.files.get('avatar')
 
@@ -225,8 +143,6 @@ def user_register():
             if password.strip() == confirm.strip():
                 if existing_user:
                     err_msg = 'Username đã được đăng ký, vui lòng chọn username khác.'
-                elif not national_id:
-                    err_msg = 'Vui lòng chọn quốc tịch.'
                 else:
 
                     if avatar:
@@ -234,7 +150,7 @@ def user_register():
                         avatar_path = res['secure_url']
 
                     utils.add_user(name=name, username=username, password=password, email=email, avatar=avatar_path,
-                                   birthday=birthday, national_id=national_id)
+                                   birthday=birthday)
                     return redirect(url_for('user_login'))
             else:
                 err_msg = 'Mật khẩu xác nhận không khớp.'
@@ -247,24 +163,36 @@ def user_register():
 #Đăng nhập trang người dùng
 @app.route('/user_login', methods=['GET', 'POST'])
 def user_login():
-    err_msg = ""
+    err_msg = ""  # Khởi tạo thông báo lỗi
 
-    if request.method == 'POST':
+    if request.method == 'POST':  # Khi người dùng gửi form đăng nhập
         try:
+            # Lấy tên đăng nhập và mật khẩu từ form
             username = request.form.get('username')
             password = request.form.get('password')
+
+            # Gọi hàm check_login để kiểm tra người dùng
             user = utils.check_login(username=username, password=password)
-            if user:
-                login_user(user)
-                next = request.args.get('next', 'home')
-                return redirect(url_for(next))
-            else:
+
+            if user:  # Nếu tìm thấy người dùng
+                login_user(user)  # Đăng nhập người dùng
+
+                # Kiểm tra vai trò của người dùng
+                if user.user_role.role_name == 'EMPLOYEE':
+                    return redirect(url_for('employee'))
+                elif user.user_role.role_name=='CUSTOMER':
+                    next = request.args.get('next', 'home')
+                    return redirect(url_for(next))
+            else:  # Nếu không tìm thấy người dùng
                 err_msg = 'Username hoặc password KHÔNG chính xác!!!'
 
-        except Exception as ex:
-            err_msg = 'Hệ thống đang có lỗi: ' + str(ex)
+        except Exception as ex:  # Bắt lỗi nếu có vấn đề
+            err_msg = 'Hệ thống đang có lỗi: ' + str(ex)  # Thông báo lỗi hệ thống
 
+    # Render lại trang đăng nhập với thông báo lỗi (nếu có)
     return render_template('login.html', err_msg=err_msg)
+
+
 #Đăng nhập admin
 @app.route('/admin_login', methods=['POST'])
 def login_admin():
@@ -301,6 +229,7 @@ def user_load(user_id):
 
 
 @app.route('/employee')
+@login_required
 def employee():
     return render_template('giaodiennhanvien.html')
 
