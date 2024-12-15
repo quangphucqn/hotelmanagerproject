@@ -7,6 +7,7 @@ from datetime import datetime
 from flask_login import UserMixin
 
 
+
 class UserRole(db.Model):
     __tablename__ = 'user_role'
     id = Column(Integer, primary_key=True, autoincrement=True)
