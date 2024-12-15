@@ -402,8 +402,9 @@ def find_booking_note(customer_name, phone_number):
     )
     if results:
      return results
-    if not results :
-        return None
+
+
+
 def create_rental_note(booking_note_id):
     id = (
         db.session.query(BookingNote)
@@ -412,9 +413,10 @@ def create_rental_note(booking_note_id):
             BookingNote.rental_notes == None
         ).all()
     )
-    if id:
-     rental_note = RentalNote(booking_note_id=id)
-     return "lập phiếu thành công"
-    else:
-        return "Lập phiếu thất bại"
+    if id:  # Nếu tìm thấy BookingNote
+        rental_note = RentalNote(booking_note_id=id)
+        db.session.add(rental_note)
+        db.session.commit()
+        return rental_note
+
 
