@@ -213,37 +213,6 @@ def calculate_total_price():
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({'error': str(e)}), 500
-# @app.route('/api/add-cart',methods=['POST'])
-# def add_to_cart():
-#     data = request.json
-#     room_id = str(data.get('room_id'))
-#     checkin_date = data.get('checkin_date')
-#     checkout_date = data.get('checkout_date')
-#     action = data.get('action')
-#     cart= session.get('cart')
-#     if not cart:
-#         cart={}
-#         session['cart'] = cart
-#
-#     if action == 'add':
-#         if room_id in cart:
-#             return jsonify({'error': 'Phòng này đã có trong giỏ hàng!'})
-#         else:
-#             cart[room_id] = {
-#                 'room_id': room_id,
-#                 'checkin_date': checkin_date,
-#                 'checkout_date': checkout_date,
-#             }
-#             session['cart'] = cart
-#             return jsonify({'message': 'Đã thêm phòng vào giỏ hàng!'})
-#     elif action == 'remove':
-#         if room_id in cart:  # Kiểm tra nếu phòng có trong giỏ hàng
-#             del cart[room_id]  # Xóa phòng khỏi giỏ hàng
-#             session['cart'] = cart  # Cập nhật session
-#             return jsonify({'message': 'Đã xóa phòng khỏi giỏ hàng!'})
-#         else:
-#             return jsonify({'error': 'Phòng này không tồn tại trong giỏ hàng!'})
-#     return jsonify({'error': 'Hành động không hợp lệ!'})
 
 @app.route('/cart')
 def cart():
@@ -252,8 +221,11 @@ def cart():
 #xóa session và trở về find_room.html
 @app.route('/clear_session')
 def clear_session():
+    checkin_date = request.args.get('checkin_date')
+    checkout_date = request.args.get('checkout_date')
+    num_rooms_requested = int(request.args.get('num_rooms_requested', 1))
     session.pop('cart', None)  # Xóa toàn bộ session
-    return redirect(url_for('find_room'))
+    return redirect(url_for('find_room',checkin_date=checkin_date, checkout_date=checkout_date,num_rooms_requested=num_rooms_requested))
 
 
 #Đăng ký
@@ -319,7 +291,9 @@ def user_login():
                     return redirect('/admin')
                 elif user.user_role.role_name=='CUSTOMER':
                     next = request.args.get('next', 'home')
-                    return redirect(url_for(next))
+                    if next:
+                        return redirect(next)  # Nếu có 'next' thì chuyển hướng tới trang đó
+                    return redirect(url_for('home'))  # Nếu không có 'next' thì chuyển hướng về trang home
             else:  # Nếu không tìm thấy người dùng
                 err_msg = 'Username hoặc password KHÔNG chính xác!!!'
 

@@ -247,9 +247,11 @@ def calculate_cost(room_data, national_coefficient):
         room_cost = room_price * days_stayed
         if data.get('number_people', 2) > 2:
             room_cost *= 1.25  # Phụ thu nếu có hơn 2 khách
-        room_cost *= national_coefficient  # Áp dụng hệ số quốc tịch
 
         total_cost += room_cost
+        if national_coefficient == 2:
+            total_cost*=2 # Áp dụng hệ số quốc tịch
+
     return total_cost
 
 
