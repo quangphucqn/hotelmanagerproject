@@ -7,7 +7,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin import BaseView, expose, AdminIndexView
 from hotelapp.models import RoomStatus, RoomType, Room, UserRole, National
 from flask_login import current_user, logout_user
-from flask import redirect, request, current_app,flash
+from flask import redirect, request, current_app,url_for
 from flask_admin.form.upload import FileUploadField
 from werkzeug.utils import secure_filename
 import cloudinary
@@ -137,7 +137,7 @@ class LogoutView(BaseView):
     @expose('/')
     def index(self):
         logout_user()
-        return redirect('/admin')
+        return redirect(url_for('user_login'))
 
     def is_accessible(self):
         return current_user.is_authenticated

@@ -1,8 +1,9 @@
+document.addEventListener("DOMContentLoaded", function() {
+    var loadingScreen = document.getElementById("loading-screen");
+    var mainContent = document.getElementById("main-content");
 
-  // Hiển thị spinner khi trang chưa tải xong
-  window.addEventListener('load', function() {
-    // Ẩn spinner khi trang đã tải xong
-    const spinner = document.querySelector('.lds-roller-container');
-    spinner.style.display = 'none';
-  });
-
+    setTimeout(function() {
+        loadingScreen.style.display = "none";
+        mainContent.style.display = "block";
+    }, 2000);
+});

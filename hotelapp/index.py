@@ -180,6 +180,8 @@ def user_login():
                 # Kiểm tra vai trò của người dùng
                 if user.user_role.role_name == 'EMPLOYEE':
                     return redirect(url_for('employee'))
+                elif user.user_role.role_name=='ADMIN':
+                    return redirect('/admin')
                 elif user.user_role.role_name=='CUSTOMER':
                     next = request.args.get('next', 'home')
                     return redirect(url_for(next))
@@ -192,22 +194,6 @@ def user_login():
     # Render lại trang đăng nhập với thông báo lỗi (nếu có)
     return render_template('login.html', err_msg=err_msg)
 
-
-#Đăng nhập admin
-@app.route('/admin_login', methods=['POST'])
-def login_admin():
-    username = request.form.get('username')
-    password = request.form.get('password')
-
-    user = utils.check_login(username=username,
-                                 password=password,
-                                 role_name="ADMIN")
-
-    if user:
-            login_user(user=user)
-            return redirect('/admin')
-    else:
-            return redirect(url_for('login_admin'))
 
 #Đăng xuất
 @app.route('/user_logout')
