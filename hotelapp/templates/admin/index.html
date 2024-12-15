@@ -3,7 +3,8 @@
     {{ super() }}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/spinner.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Audiowide">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Sofia&effect=neon|outline|emboss|shadow-multiple">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Sofia&effect=fire">
 {% endblock head_css %}
 {% block tail_js %}
     {{ super() }}
@@ -46,7 +47,7 @@
 
     <div id="main-content" style="display: none;">
         <div id="welcome-message">
-            <h1>Chào mừng <span style="color:whitesmoke"> {{ current_user.name }} </span> đến trang web quản trị</h1>
+            <h1 class="font-effect-fire font-effect-shadow-multiple">Chào mừng <span  style="color:whitesmoke"> {{ current_user.name }} </span> đến trang web quản trị</h1>
             <img src="{{ url_for('static', filename='images/pnp.jpg') }}" id="logo" alt="Avatar Logo">
         </div>
     </div>
