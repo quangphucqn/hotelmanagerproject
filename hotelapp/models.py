@@ -1,6 +1,6 @@
 import hashlib
 from ctypes.wintypes import DOUBLE
-from sqlalchemy import Column, Integer, String, Float, Boolean, Date, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Boolean, Date, DateTime, ForeignKey,UniqueConstraint
 from hotelapp import db, app
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -70,7 +70,15 @@ class BookingNoteDetails(BaseModel):
     checkout_date = Column(DateTime, nullable=False)
     number_people = Column(Integer, nullable=False)
     booking_note_id = Column(Integer, ForeignKey('booking_note.id'), nullable=False)
-    room_id = Column(Integer, ForeignKey('room.id'), nullable=False, primary_key=True)
+    room_id = Column(Integer, ForeignKey('room.id'), nullable=False,primary_key=True)
+
+    __table_args__ = (
+        UniqueConstraint('checkin_date', 'room_id', name='_checkin_room_uc'),
+    )
+    def __str__(self):
+        return str(self.id)
+
+
 
 class BookingNote(BaseModel):
     __tablename__ = 'booking_note'
@@ -237,6 +245,7 @@ if __name__ == '__main__':
         bnd3 = BookingNoteDetails(checkin_date=datetime(2024, 12, 7), checkout_date=datetime(2024, 12, 8), number_people=2, booking_note_id=2, room_id=1)
         bnd4 = BookingNoteDetails(checkin_date=datetime(2024, 12, 7), checkout_date=datetime(2024, 12, 8), number_people=2, booking_note_id=2, room_id=6)
         bnd5 = BookingNoteDetails(checkin_date=datetime(2024, 12, 30), checkout_date=datetime(2024, 12, 31), number_people=2, booking_note_id=1, room_id=1)
+
         db.session.add(bnd1)
         db.session.add(bnd2)
         db.session.add(bnd3)
