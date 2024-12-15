@@ -166,9 +166,8 @@ def calculate_room_price():
 
         # Áp dụng logic giá phòng nhân với 1.25 nếu số người là 3
         if number_people == 3:
-            room_price *= 1.25  # Nhân giá phòng với 1.5
+            room_price *= 1.25
 
-        # Tính tiền cho phòng
         room_total_price = room_price * num_days
 
         # Cập nhật lại tổng tiền cho phòng trong giỏ hàng
@@ -188,7 +187,6 @@ def calculate_room_price():
 def calculate_total_price():
     try:
         total_cost = 0
-        detailed_costs = {}
 
         if 'cart' not in session:
             return jsonify({'error': 'No rooms in cart'}), 400
@@ -197,19 +195,18 @@ def calculate_total_price():
         for room_id, room_data in session['cart'].items():
             room_total_price = room_data.get('total_price', 0)
             total_cost += room_total_price
-            detailed_costs[room_id] = room_data['total_price']
 
         # Lấy tỷ lệ hệ số quốc tịch
         national_coefficient = float(request.json.get('national_coefficient', 1.0))
 
         # Áp dụng hệ số quốc tịch nếu cần
-        if(national_coefficient == 2):
-            total_cost *= 1.5
-
+        if national_coefficient == 2:
+            total_cost *= 1.5  # Nếu quốc tịch là "Khác", áp dụng hệ số 1.5
+        # Trả lại kết quả cho client
         return jsonify({
-            'total_cost': total_cost,
-            'detailed_costs': detailed_costs
+            'total_cost': total_cost
         })
+
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({'error': str(e)}), 500
@@ -290,7 +287,7 @@ def user_login():
                 elif user.user_role.role_name=='ADMIN':
                     return redirect('/admin')
                 elif user.user_role.role_name=='CUSTOMER':
-                    next = request.args.get('next', 'home')
+                    next = request.args.get('next')
                     if next:
                         return redirect(next)  # Nếu có 'next' thì chuyển hướng tới trang đó
                     return redirect(url_for('home'))  # Nếu không có 'next' thì chuyển hướng về trang home

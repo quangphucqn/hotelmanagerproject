@@ -7,7 +7,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin import BaseView, expose, AdminIndexView
 from hotelapp.models import RoomStatus, RoomType, Room, UserRole, National
 from flask_login import current_user, logout_user
-from flask import redirect, request, current_app,url_for
+from flask import redirect, request, current_app,url_for,flash
 from flask_admin.form.upload import FileUploadField
 from werkzeug.utils import secure_filename
 import cloudinary
