@@ -166,43 +166,76 @@ def find_room(checkin_date, checkout_date, num_rooms_requested):
     return available_room_types
 
 #ĐẶT PHÒNG
-# Lấy danh sách phòng trống chi tiết theo loại, ngày nhận và ngày trả phòng.
-def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested):
-    checkin_date = datetime.strptime(checkin_date, '%Y-%m-%d')
-    checkout_date = datetime.strptime(checkout_date, '%Y-%m-%d')
 
-    # Truy vấn danh sách phòng trống theo loại
-    rooms = db.session.query(Room, RoomType, RoomStatus).join(
-        RoomType, Room.room_type_id == RoomType.id
-    ).join(
-        RoomStatus, Room.room_status_id == RoomStatus.id
-    ).filter(
-        Room.room_type_id == room_type_id,  # Lọc theo loại phòng
-    ).filter(
+# Lấy danh sách phòng trống chi tiết theo loại, ngày nhận và ngày trả phòng.
+# def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested):
+#     checkin_date = datetime.strptime(checkin_date, '%Y-%m-%d')
+#     checkout_date = datetime.strptime(checkout_date, '%Y-%m-%d')
+#
+#     # Truy vấn danh sách phòng trống theo loại
+#     rooms = db.session.query(Room, RoomType, RoomStatus).join(
+#         RoomType, Room.room_type_id == RoomType.id
+#     ).join(
+#         RoomStatus, Room.room_status_id == RoomStatus.id
+#     ).filter(
+#         Room.room_type_id == room_type_id,  # Lọc theo loại phòng
+#     ).filter(
+#         ~db.session.query(BookingNoteDetails).filter(
+#             BookingNoteDetails.room_id == Room.id,
+#             (BookingNoteDetails.checkin_date < checkout_date) &
+#             (BookingNoteDetails.checkout_date > checkin_date)
+#         ).exists()
+#     ).all() # Lấy tất cả các phòng có thể trống
+#
+#     # Lọc các phòng đủ số lượng yêu cầu
+#     available_rooms = []
+#     for room, room_type, room_status in rooms:
+#         if len(available_rooms)< num_rooms_requested:
+#             available_rooms.append((room, room_type, room_status))
+#
+#     return available_rooms
+def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested):
+    rooms = db.session.query(Room).filter(
+        Room.room_type_id == room_type_id,
         ~db.session.query(BookingNoteDetails).filter(
             BookingNoteDetails.room_id == Room.id,
-            (BookingNoteDetails.checkin_date < checkout_date) &
-            (BookingNoteDetails.checkout_date > checkin_date)
+            BookingNoteDetails.checkin_date < checkout_date,
+            BookingNoteDetails.checkout_date > checkin_date
         ).exists()
-    ).all() # Lấy tất cả các phòng có thể trống
+    ).limit(num_rooms_requested).all()
 
-    # Lọc các phòng đủ số lượng yêu cầu
-    available_rooms = []
-    for room, room_type, room_status in rooms:
-        if len(available_rooms)< num_rooms_requested:
-            available_rooms.append((room, room_type, room_status))
+    return rooms
+# #đếm sp trong giỏ hàng
+# def count_cart(cart):
+#     total_quantity=0
+#
+#     if cart:
+#         for c in cart.values():
+#             total_quantity +=1
+#     return {
+#         'total_quantity': total_quantity
+#     }
+# tính toán tổng chi phí đặt phòng
+def calculate_cost(room_data, national_coefficient):
 
-    return available_rooms
+    total_cost = 0
+    for data in room_data:
+        room = Room.query.get(data['room_id'])
+        room_type = room.room_type
+        days_stayed = (datetime.strptime(data['checkout_date'], '%Y-%m-%d') -
+                       datetime.strptime(data['checkin_date'], '%Y-%m-%d')).days
+        room_cost = room_type.price * days_stayed
 
-def count_cart(cart):
-    total_quantity=0
+        # Áp dụng hệ số nếu có 3 khách
+        if data['number_people'] == 3:
+            room_cost *= 1.25
 
-    if cart:
-        for c in cart.values():
-            total_quantity +=1
-    return {
-        'total_quantity': total_quantity
-    }
+        # Áp dụng hệ số khách nước ngoài
+        room_cost *= national_coefficient
+        total_cost += room_cost
+    return total_cost
+
+#xác nhận đặt phòng thành công
 
 #THỐNG KÊ
 

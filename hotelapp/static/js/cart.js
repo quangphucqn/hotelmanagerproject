@@ -58,3 +58,21 @@ function removeFromCart(roomId,checkindate,checkoutdate, button) {
         })
         .catch(error => console.error('Error:', error));
 }
+function clearSession(event) {
+            event.preventDefault();  // Ngăn việc chuyển trang ngay lập tức
+
+            fetch('/api/clear-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message);  // Hiển thị thông báo
+                // Chuyển hướng đến URL "Trở lại"
+                window.location.href = event.target.href;
+            })
+            .catch(error => console.error('Error:', error));
+}
