@@ -1,0 +1,22 @@
+{% extends 'layout/base.html' %}
+
+
+{% block title %} Boongking Room - Cart {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3>Giỏ hàng</h3>
+    {% if cart %}
+        <ul>
+        {% for room_id, details in cart.items() %}
+            <li>Phòng ID: {{ details['room_id'] }} -
+                Ngày nhận: {{ details['checkin_date'] }} -
+                Ngày trả: {{ details['checkout_date'] }}
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Giỏ hàng rỗng.</p>
+    {% endif %}
+</div>
+{% endblock %}

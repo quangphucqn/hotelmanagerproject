@@ -1,10 +1,13 @@
 import hashlib
 from ctypes.wintypes import DOUBLE
-from sqlalchemy import Column, Integer, String, Float, Boolean, Date, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Boolean, Date, DateTime, ForeignKey,UniqueConstraint
 from hotelapp import db, app
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from flask_login import UserMixin
+import cryptography
+print(cryptography.__version__)
+
 
 class UserRole(db.Model):
     __tablename__ = 'user_role'
@@ -67,11 +70,20 @@ class RentalNote(db.Model):
 
 class BookingNoteDetails(db.Model):
     __tablename__ = 'booking_note_details'
+    id = Column(Integer, primary_key=True, autoincrement=True)
     checkin_date = Column(DateTime,primary_key=True, nullable=False)
     checkout_date = Column(DateTime, nullable=False)
     number_people = Column(Integer, nullable=False)
     booking_note_id = Column(Integer, ForeignKey('booking_note.id'), nullable=False)
-    room_id = Column(Integer, ForeignKey('room.id'), nullable=False, primary_key=True)
+    room_id = Column(Integer, ForeignKey('room.id'), nullable=False,primary_key=True)
+
+    __table_args__ = (
+        UniqueConstraint('checkin_date', 'room_id', name='_checkin_room_uc'),
+    )
+    def __str__(self):
+        return str(self.id)
+
+
 
 
 
@@ -156,8 +168,22 @@ if __name__ == '__main__':
 
         rot1 = RoomType(room_type_name='Classic Sea View', price=550000, surcharge=0.25,image='images/classic.jpg')
         rot2 = RoomType(room_type_name='Penthouse with Sea View', price=1000000, surcharge=0.25,image='images/classic.jpg')
+        rot3 = RoomType(room_type_name='Queen Resort Classic Ocean View', price=1200000, surcharge=0.25,image='images/classic.jpg')
+        rot4 = RoomType(room_type_name='Queen Classic Panoramic Ocean View', price=1500000, surcharge=0.25,image='images/classic.jpg')
+        rot5 = RoomType(room_type_name='King Terrace Suite Ocean View', price=1700000, surcharge=0.25,image='images/classic.jpg')
+        rot6 = RoomType(room_type_name='King Club Suite Panoramic Oceanview', price=2000000, surcharge=0.25,image='images/classic.jpg')
+        rot7 = RoomType(room_type_name='Bedroom Spa Lagoon Villa', price=3000000, surcharge=0.25,image='images/classic.jpg')
+        rot8 = RoomType(room_type_name='Bedroom Sun Peninsula Residence Villa', price=3500000, surcharge=0.25,image='images/classic.jpg')
+        rot9 = RoomType(room_type_name='Bedroom Pool Villa Ocean View', price=4000000, surcharge=0.25,image='images/classic.jpg')
         db.session.add(rot1)
         db.session.add(rot2)
+        db.session.add(rot3)
+        db.session.add(rot4)
+        db.session.add(rot5)
+        db.session.add(rot6)
+        db.session.add(rot7)
+        db.session.add(rot8)
+        db.session.add(rot9)
 
         ros1 = RoomStatus(status_name='trống')
         ros2 = RoomStatus(status_name='đang thuê')
@@ -172,12 +198,54 @@ if __name__ == '__main__':
         r4 = Room(room_address='201', max_people=3, image='img1.jpg', room_type_id=2, room_status_id=1)
         r5 = Room(room_address='202', max_people=3, image='img1.jpg', room_type_id=2, room_status_id=1)
         r6 = Room(room_address='203', max_people=3, image='img1.jpg', room_type_id=2, room_status_id=1)
+        r7 = Room(room_address='301', max_people=2, image='img1.jpg', room_type_id=3, room_status_id=1)
+        r8 = Room(room_address='302', max_people=3, image='img1.jpg', room_type_id=3, room_status_id=1)
+        r9 = Room(room_address='303', max_people=3, image='img1.jpg', room_type_id=3, room_status_id=1)
+        r10 = Room(room_address='401', max_people=3, image='img1.jpg', room_type_id=4, room_status_id=1)
+        r11 = Room(room_address='402', max_people=3, image='img1.jpg', room_type_id=4, room_status_id=1)
+        r12 = Room(room_address='403', max_people=3, image='img1.jpg', room_type_id=4, room_status_id=1)
+        r13 = Room(room_address='501', max_people=2, image='img1.jpg', room_type_id=5, room_status_id=1)
+        r14 = Room(room_address='502', max_people=2, image='img1.jpg', room_type_id=5, room_status_id=1)
+        r15 = Room(room_address='503', max_people=2, image='img1.jpg', room_type_id=5, room_status_id=1)
+        r16 = Room(room_address='601', max_people=2, image='img1.jpg', room_type_id=6, room_status_id=1)
+        r17 = Room(room_address='602', max_people=2, image='img1.jpg', room_type_id=6, room_status_id=1)
+        r18 = Room(room_address='603', max_people=2, image='img1.jpg', room_type_id=6, room_status_id=1)
+        r19 = Room(room_address='701', max_people=3, image='img1.jpg', room_type_id=7, room_status_id=1)
+        r20 = Room(room_address='702', max_people=3, image='img1.jpg', room_type_id=7, room_status_id=1)
+        r21 = Room(room_address='703', max_people=3, image='img1.jpg', room_type_id=7, room_status_id=1)
+        r22 = Room(room_address='801', max_people=2, image='img1.jpg', room_type_id=8, room_status_id=1)
+        r23 = Room(room_address='802', max_people=2, image='img1.jpg', room_type_id=8, room_status_id=1)
+        r24 = Room(room_address='803', max_people=2, image='img1.jpg', room_type_id=8, room_status_id=1)
+        r25 = Room(room_address='901', max_people=2, image='img1.jpg', room_type_id=9, room_status_id=1)
+        r26 = Room(room_address='902', max_people=2, image='img1.jpg', room_type_id=9, room_status_id=1)
+        r27 = Room(room_address='903', max_people=2, image='img1.jpg', room_type_id=9, room_status_id=1)
         db.session.add(r1)
         db.session.add(r2)
         db.session.add(r3)
         db.session.add(r4)
         db.session.add(r5)
         db.session.add(r6)
+        db.session.add(r7)
+        db.session.add(r8)
+        db.session.add(r9)
+        db.session.add(r10)
+        db.session.add(r11)
+        db.session.add(r12)
+        db.session.add(r13)
+        db.session.add(r14)
+        db.session.add(r15)
+        db.session.add(r16)
+        db.session.add(r17)
+        db.session.add(r18)
+        db.session.add(r19)
+        db.session.add(r20)
+        db.session.add(r21)
+        db.session.add(r22)
+        db.session.add(r23)
+        db.session.add(r24)
+        db.session.add(r25)
+        db.session.add(r26)
+        db.session.add(r27)
 
         b1 = BookingNote(customer_name='Lê Hoàng Phúc', phone_number='0337367643', cccd='051204010012', user_id=3,national_id=1)
         b2 = BookingNote(customer_name='Nguyen Thành Nhật', phone_number='0987654321', cccd='098765432112', user_id=4,national_id=1)
@@ -189,6 +257,7 @@ if __name__ == '__main__':
         bnd3 = BookingNoteDetails(checkin_date=datetime(2024, 12, 7), checkout_date=datetime(2024, 12, 8), number_people=2, booking_note_id=2, room_id=1)
         bnd4 = BookingNoteDetails(checkin_date=datetime(2024, 12, 7), checkout_date=datetime(2024, 12, 8), number_people=2, booking_note_id=2, room_id=6)
         bnd5 = BookingNoteDetails(checkin_date=datetime(2024, 12, 30), checkout_date=datetime(2024, 12, 31), number_people=2, booking_note_id=1, room_id=1)
+
         db.session.add(bnd1)
         db.session.add(bnd2)
         db.session.add(bnd3)
@@ -215,7 +284,6 @@ if __name__ == '__main__':
                                   number_people=2, booking_note_id=4, room_id=5)
         db.session.add(b20)
         db.session.add(bnd30)
-
         db.session.commit()
 
 

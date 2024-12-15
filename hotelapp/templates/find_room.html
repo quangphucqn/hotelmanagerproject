@@ -1,7 +1,7 @@
 {% extends 'layout/base.html' %}
 
 
-{% block title %} Tim phong {% endblock %}
+{% block title %} Select Room {% endblock %}
 
 {% block content %}
     <!--Form search -->
@@ -24,19 +24,19 @@
                 <div class="col-4 col-md-1">
                     <label for="room">Room</label>
                     <select name="room" id="room" class="form-select">
-                        <option value="1" {% if num_rooms_requested == '1' %}selected{% endif %}>1</option>
-                        <option value="2" {% if num_rooms_requested == '2' %}selected{% endif %}>2</option>
-                        <option value="3" {% if num_rooms_requested == '3' %}selected{% endif %}>3</option>
-                        <option value="4" {% if num_rooms_requested == '4' %}selected{% endif %}>4</option>
+                        <option value="1" {% if num_rooms_requested == 1 %}selected{% endif %}>1</option>
+                        <option value="2" {% if num_rooms_requested == 2 %}selected{% endif %}>2</option>
+                        <option value="3" {% if num_rooms_requested == 3 %}selected{% endif %}>3</option>
+                        <option value="4" {% if num_rooms_requested == 4 %}selected{% endif %}>4</option>
                     </select>
                 </div>
                 <div class="col-4 col-md-1">
                     <label for="adults">Adult</label>
                     <select name="adults" id="adults" class="form-select" >
-                        <option value="1" {% if adults == '1' %}selected{% endif %}>1</option>
-                        <option value="2" {% if adults == '2' %}selected{% endif %}>2</option>
-                        <option value="3" {% if adults == '3' %}selected{% endif %}>3</option>
-                        <option value="4" {% if adults == '4' %}selected{% endif %}>4</option>
+                        <option value="1" {% if adults == 1 %}selected{% endif %}>1</option>
+                        <option value="2" {% if adults == 2 %}selected{% endif %}>2</option>
+                        <option value="3" {% if adults == 3 %}selected{% endif %}>3</option>
+                        <option value="4" {% if adults == 4 %}selected{% endif %}>4</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-3">
@@ -53,9 +53,9 @@
 {#        <div class="alert alert-danger">#}
 {#            {{ err_msg }}#}
 {#        </div>#}
-    {% if available_rooms %}
+    {% if available_room_types %}
         <div class="room-show mt-5">
-            {% for room, room_type, room_status in available_rooms %}
+            {% for room_type in available_room_types %}
                 <div class="card mb-3" style="width: 100%;">
                     <div class="row g-0">
                         <div class="col-md-4">
@@ -64,11 +64,9 @@
                         </div>
                         <div class="col-md-8">
                             <div class="card-body">
-                                <h5 class="card-title">{{ room_type.room_type_name }}</h5>
+                                <h5 class="card-title">{{ room_type.name }}</h5>
                                 <p class="card-text" style="font-weight: bold;margin-top: 1rem">{{ room_type.price }} VND </p>
-                                <p class="card-text"><small class="text-muted">{{ room.max_people }} <i
-                                        class="fa-solid fa-user"></i></small></p>
-                                <a href="#" class="btn btn-primary">Đặt phòng ngay</a>
+                                <a href="{{ url_for('booking_room', room_type_id=room_type.id, checkin_date=checkin_date, checkout_date=checkout_date, num_rooms_requested=num_rooms_requested) }}" class="btn btn-primary">Đặt phòng ngay</a>
                             </div>
                         </div>
                     </div>

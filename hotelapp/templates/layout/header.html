@@ -11,7 +11,9 @@
     <div class="collapse navbar-collapse" id="mynavbar">
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
-          <a class="nav-link" href="javascript:void(0)">Đặt phòng</a>
+          <a class="nav-link" href="{{ url_for('cart') }}">Đặt phòng
+          <span class="badge badge-info" id="cartCounter" style="color: #1cc3b2">0</span>
+          </a>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Về chúng tôi</a>
@@ -24,23 +26,23 @@
          {% if current_user.is_authenticated %}
             <li class="nav-item" style="display: flex; align-items: center; justify-content: space-between; padding: 0 10px;">
                 <div style="display: flex; align-items: center; gap: 10px;margin-right:20px">
-        {% if current_user.avatar %}
-                     <img src="{{ current_user.avatar }}" class="rounded-circle" width="30" alt="{{ current_user.name }}"
-                        style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;">
-        {% else %}
-                    <img src="{{ url_for('static', filename='images/default.jpg') }}" class="rounded-circle" width="30" alt="{{ current_user.name }}"
-                 style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;">
-        {% endif %}
-                    <span style="font-size: 16px; font-weight: bold; color: antiquewhite; margin-left: 8px;">{{ current_user.username }}</span>
-                </div>
-         <a class="btn btn-primary" href="{{ url_for('user_logout')}}" style="background-color: #ff0000; color: white; border-color: #1cc3b2; text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 5px;">Đăng xuất</a>
-            </li>
-      {% else %}
-          <form class="d-flex">
-            <a class=" btn btn-primary" href="{{ url_for('user_login') }}" style="background-color: #FF5722 ; color: white; border-color: #1cc3b2; text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 5px;">Đăng nhập</a>
-            <a class="btn btn-primary" href="{{ url_for('user_register')}}" style="background-color: #1cc3b2; color: white; border-color: #1cc3b2; text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 5px;">Đăng ký</a>
-          </form>
-      {% endif %}
+            {% if current_user.avatar %}
+                         <img src="{{ current_user.avatar }}" class="rounded-circle" width="30" alt="{{ current_user.name }}"
+                            style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;">
+            {% else %}
+                        <img src="{{ url_for('static', filename='images/default.jpg') }}" class="rounded-circle" width="30" alt="{{ current_user.name }}"
+                     style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;">
+            {% endif %}
+                        <span style="font-size: 16px; font-weight: bold; color: antiquewhite; margin-left: 8px;">{{ current_user.username }}</span>
+                    </div>
+             <a class="btn btn-primary" href="{{ url_for('user_logout')}}" style="background-color: #ff0000; color: white; border-color: #1cc3b2; text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 5px;">Đăng xuất</a>
+                </li>
+         {% else %}
+              <form class="d-flex">
+                <a class=" btn btn-primary" href="{{ url_for('user_login') }}" style="background-color: #FF5722 ; color: white; border-color: #1cc3b2; text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 5px;">Đăng nhập</a>
+                <a class="btn btn-primary" href="{{ url_for('user_register')}}" style="background-color: #1cc3b2; color: white; border-color: #1cc3b2; text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 5px;">Đăng ký</a>
+              </form>
+         {% endif %}
     </div>
   </div>
 </nav>
