@@ -35,19 +35,33 @@ def add_user(name,username,password,**kwargs):
               )
 
 #Kiểm tra đăng nhập
-def check_login(username, password, role_name="CUSTOMER"):
+def check_login(username, password, role_name=None):
+    """
+    Kiểm tra đăng nhập người dùng với vai trò linh hoạt.
+
+    Args:
+        username (str): Tên đăng nhập của người dùng.
+        password (str): Mật khẩu của người dùng.
+        role_name (str): Vai trò của người dùng (ADMIN, CUSTOMER, EMPLOYEE).
+
+    Returns:
+        User object: Trả về người dùng nếu thông tin hợp lệ, nếu không trả về None.
+    """
     if username and password:
+        # Mã hóa mật khẩu bằng MD5
         password = hashlib.md5(password.strip().encode('utf-8')).hexdigest()
 
-        # Kiểm tra xem vai trò có phải là "CUSTOMER" hoặc "EMPLOYEE"
-        role = UserRole.query.filter(UserRole.role_name.in_([role_name, "EMPLOYEE"])).all()
+        # Truy vấn để lấy thông tin người dùng dựa trên tên đăng nhập và mật khẩu
+        user = User.query.filter(
+            User.username == username.strip(),
+            User.password == password
+        ).first()
 
-        if role:
-            return User.query.filter(
-                User.username == username.strip(),
-                User.password == password,
-                User.user_role_id.in_([role[0].id, role[1].id])
-            ).first()
+        if user and (role_name is None or user.user_role.role_name == role_name):
+            return user
+
+    # Trả về None nếu không tìm thấy hoặc thông tin không hợp lệ
+    return None
 
 
 #Hàm tải người dùng
@@ -384,6 +398,7 @@ def create_booking_note_details(room_data, booking_note_id):
 
     # Commit để lưu toàn bộ thông tin vào cơ sở dữ liệu
     db.session.commit()
+
 
 def find_booking_note(customer_name, phone_number):
     results = (

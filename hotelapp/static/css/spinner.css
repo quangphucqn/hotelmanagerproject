@@ -1,15 +1,20 @@
+/* Thay đổi màu sắc của spinner */
 .lds-roller {
-  /* change color here */
-  color: #1c4c5b
+  color: #1c4c5b;
 }
+/* Đảm bảo tất cả các phần tử đều sử dụng box-sizing: border-box */
 .lds-roller,
 .lds-roller div,
 .lds-roller div:after {
   box-sizing: border-box;
 }
+/* Đặt spinner ở giữa màn hình */
 .lds-roller {
   display: inline-block;
-  position: relative;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 80px;
   height: 80px;
 }
@@ -90,4 +95,84 @@
   100% {
     transform: rotate(360deg);
   }
+}
+/* Thêm kiểu cho chữ "loading.." */
+#loading-text {
+  position: fixed;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  color: #1c4c5b;
+}
+
+
+
+
+
+
+
+/*Hiệu ứng khác */
+body {
+  font-family: 'Arial', sans-serif;
+  background: #193150;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#loading-screen {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+#loading-text {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #1c4c5b;
+}
+
+#main-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  width: 100%;
+}
+
+#welcome-message {
+  animation: fadeIn 3s ease-in-out;
+}
+
+#welcome-message h1 {
+  font-size: 50px;
+  color: darkgoldenrod;
+  margin: 0;
+}
+
+
+#logo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: -1;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

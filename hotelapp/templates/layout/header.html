@@ -32,7 +32,7 @@
                         <img src="{{ url_for('static', filename='images/default.jpg') }}" class="rounded-circle" width="30" alt="{{ current_user.name }}"
                      style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;">
             {% endif %}
-                        <span style="font-size: 16px; font-weight: bold; color: antiquewhite; margin-left: 8px;">{{ current_user.username }}</span>
+                        <span style="font-size: 16px; font-weight: bold; color: #33ccff; font-family:monospace; margin-left: 8px;">{{ current_user.username }}</span>
                     </div>
              <a class="btn btn-primary" href="{{ url_for('user_logout')}}" style="background-color: #ff0000; color: white; border-color: #1cc3b2; text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 5px;">Đăng xuất</a>
                 </li>

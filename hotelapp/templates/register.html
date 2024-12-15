@@ -9,6 +9,16 @@
     <h4>{{ err_msg }}</h4>
 </div>
 {% endif %}
+     <div id="loading-screen">
+    <div class="lds-roller">
+      <div></div><div></div><div></div><div></div>
+      <div></div><div></div><div></div><div></div>
+    </div>
+      <div id="loading-text">Loading...</div>
+  </div>
+
+  <!-- Carousel -->
+  <div id="main-content" style="display: none;">
 <form method="post" action="{{ url_for('user_register') }}" enctype="multipart/form-data">
     <div class="form-group">
         <label for="name">Họ tên</label>
@@ -44,5 +54,8 @@
     <br>
     <input type="submit" value="Đăng ký" class="btn btn-danger"/>
 </form>
+    </div>
+    </nav>
+  </div>
 <br><br>
 {% endblock %}
