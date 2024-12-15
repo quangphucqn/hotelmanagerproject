@@ -2,82 +2,89 @@
 
 
 {% block title %} Booking Room - Select Your Room {% endblock %}
-
+{% block js %}
+    <script src="{{ url_for('static',filename='js/calculate_cost.js') }}"></script> {% endblock %}
 {% block content %}
     <div class="container mt-5">
-    <h3>Xác nhận đặt phòng</h3>
-    <form action="{{ url_for('confirm_booking') }}" method="POST">
-        <!-- Thông tin khách hàng -->
-        <div class="mb-3">
-            <label for="customer_name" class="form-label">Tên khách hàng</label>
-            <input type="text" class="form-control" id="customer_name" name="customer_name" required>
-        </div>
-        <div class="mb-3">
-            <label for="phone_number" class="form-label">Số điện thoại</label>
-            <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
-        </div>
-        <div class="mb-3">
-            <label for="cccd" class="form-label">CCCD/PassPort</label>
-            <input type="text" class="form-control" id="cccd" name="cccd" required>
-        </div>
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" name="email">
-        </div>
-        <div class="mb-3">
-            <label for="national_id" class="form-label">Quốc tịch</label>
-            <select class="form-select" id="national_id" name="national_id" required>
-                <option value="1">Việt Nam</option>
-                <option value="2">Khác</option>
-            </select>
-        </div>
+        <h3>Xác nhận đặt phòng</h3>
+        <form action="{{ url_for('confirm_booking', room_type_id=room_type_id) }}" method="POST">
+            <!-- Thông tin khách hàng -->
+            <div class="mb-3">
+                <label for="customer_name" class="form-label">Tên khách hàng</label>
+                <input type="text" class="form-control" id="customer_name" name="customer_name" required>
+            </div>
+            <div class="mb-3">
+                <label for="phone_number" class="form-label">Số điện thoại</label>
+                <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+            </div>
+            <div class="mb-3">
+                <label for="cccd" class="form-label">CCCD/PassPort</label>
+                <input type="text" class="form-control" id="cccd" name="cccd" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email">
+            </div>
+            <div class="mb-3">
+                <label for="national_id" class="form-label">Quốc tịch</label>
+                <select class="form-select" id="national_id" name="national_id" required>
+                    <option value="1">Việt Nam</option>
+                    <option value="2">Khác</option>
+                </select>
+            </div>
 
-        <!-- Hiển thị danh sách phòng -->
-        <h4>Các phòng được chọn:</h4>
-        <div id="accordion">
-            {% for room_id, room_data in cart.items() %}
-            <div class="card">
-                <div class="card-header">
-                    <a class="btn" data-bs-toggle="collapse" href="#collapse{{ room_id }}">
-                        Phòng: {{ room_data.room_address }} - Loại phòng: {{ room_data.room_type_name }}
-                    </a>
-                </div>
-                <div id="collapse{{ room_id }}" class="collapse show" data-bs-parent="#accordion">
-                    <div class="card-body">
-                        Ngày nhận: {{ room_data.checkin_date }}
-                    </div>
-                    <div class="card-body">
-                        Ngày trả: {{ room_data.checkout_date }}
-                    </div>
-                    <div class="form-check" style="padding-left: 1.2rem">
-                        <label>Số khách:</label>
-                        <div style="padding-top:0.5rem;padding-bottom: 0.5rem ">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="number_people_{{ room_id }}" id="inlineRadio1_{{ room_id }}" value="1" checked>
-                                <label class="form-check-label" for="inlineRadio1_{{ room_id }}">1</label>
+            <!-- Hiển thị danh sách phòng -->
+            <h4>Các phòng được chọn:</h4>
+            <div id="accordion">
+                {% for room_id, room_data in cart.items() %}
+                    <div class="card">
+                        <div class="card-header">
+                            <a class="btn" data-bs-toggle="collapse" href="#collapse{{ room_id }}">
+                                Phòng: {{ room_data.room_address }} - Loại phòng: {{ room_data.room_type_name }}
+                            </a>
+                        </div>
+                        <div id="collapse{{ room_id }}" class="collapse show" data-bs-parent="#accordion">
+                            <div class="card-body">
+                                Giá: <span class="room-price" data-room-price="{{ room_data.room_price }}"
+                                           id="price_{{ room_id }}">
+                            {{ room_data.room_price }} VNĐ
+                        </span>
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="number_people_{{ room_id }}" id="inlineRadio2_{{ room_id }}" value="2">
-                                <label class="form-check-label" for="inlineRadio2_{{ room_id }}">2</label>
+                            <div class="card-body">
+                                Ngày nhận: {{ room_data.checkin_date }}
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="number_people_{{ room_id }}" id="inlineRadio3_{{ room_id }}" value="3">
-                                <label class="form-check-label" for="inlineRadio3_{{ room_id }}">3</label>
+                            <div class="card-body">
+                                Ngày trả: {{ room_data.checkout_date }}
+                            </div>
+                            <div class="form-check" style="padding-left: 1.2rem">
+                                <label>Số khách:</label>
+                                <div style="padding-top:0.5rem;padding-bottom: 0.5rem ">
+                                    {% for i in range(1, 4) %}
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio"
+                                                   name="number_people_{{ room_id }}"
+                                                   id="inlineRadio{{ i }}_{{ room_id }}"
+                                                   value="{{ i }}"
+                                                   {% if i == room_data.number_people %}checked{% endif %}
+                                                   onchange="updatePrice('{{ room_id }}')">
+                                            <label class="form-check-label"
+                                                   for="inlineRadio{{ i }}_{{ room_id }}">{{ i }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                {% endfor %}
+
             </div>
-            {% endfor %}
+            <h4>Tổng tiền sơ bộ:</h4>
+            <p id="total_price">Tổng: {{ total_price }} VNĐ</p>
 
-        </div>
-        <h4>Tổng tiền sơ bộ:</h4>
-        <p id="total_price">{{ total_price }} VNĐ</p>
-
-        <!-- Nút xác nhận -->
-        <button type="submit" class="btn btn-success mt-3">Xác nhận đặt phòng</button>
-    </form>
-    <!-- Nút trở lại -->
-    <a href="{{ url_for('clear_session') }}" class="btn btn-secondary mt-3 mb-3">Trở lại</a>
-</div>
+            <!-- Nút xác nhận -->
+            <button type="submit" class="btn btn-success mt-3">Xác nhận đặt phòng</button>
+        </form>
+        <!-- Nút trở lại -->
+        <a href="{{ url_for('clear_session') }}" class="btn btn-secondary mt-3 mb-3">Trở lại</a>
+    </div>
 {% endblock %}

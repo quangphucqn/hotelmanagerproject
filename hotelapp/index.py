@@ -3,7 +3,8 @@ from tabnanny import check
 
 from flask import render_template, request, redirect, url_for,session,jsonify
 from hotelapp import app, login
-from flask_login import login_user,logout_user,login_required
+
+from flask_login import login_user,logout_user
 import utils
 import cloudinary.uploader
 from sqlalchemy.orm import Session
@@ -132,6 +133,7 @@ def user_register():
         password = request.form.get('password')
         email = request.form.get('email')
         birthday = request.form.get('birthday')
+        national_id = request.form.get('national_id')
         confirm = request.form.get('confirm')
         avatar = request.files.get('avatar')
 
@@ -143,6 +145,8 @@ def user_register():
             if password.strip() == confirm.strip():
                 if existing_user:
                     err_msg = 'Username đã được đăng ký, vui lòng chọn username khác.'
+                elif not national_id:
+                    err_msg = 'Vui lòng chọn quốc tịch.'
                 else:
 
                     if avatar:
@@ -150,7 +154,7 @@ def user_register():
                         avatar_path = res['secure_url']
 
                     utils.add_user(name=name, username=username, password=password, email=email, avatar=avatar_path,
-                                   birthday=birthday)
+                                   birthday=birthday, national_id=national_id)
                     return redirect(url_for('user_login'))
             else:
                 err_msg = 'Mật khẩu xác nhận không khớp.'
@@ -163,36 +167,24 @@ def user_register():
 #Đăng nhập trang người dùng
 @app.route('/user_login', methods=['GET', 'POST'])
 def user_login():
-    err_msg = ""  # Khởi tạo thông báo lỗi
+    err_msg = ""
 
-    if request.method == 'POST':  # Khi người dùng gửi form đăng nhập
+    if request.method == 'POST':
         try:
-            # Lấy tên đăng nhập và mật khẩu từ form
             username = request.form.get('username')
             password = request.form.get('password')
-
-            # Gọi hàm check_login để kiểm tra người dùng
             user = utils.check_login(username=username, password=password)
-
-            if user:  # Nếu tìm thấy người dùng
-                login_user(user)  # Đăng nhập người dùng
-
-                # Kiểm tra vai trò của người dùng
-                if user.user_role.role_name == 'EMPLOYEE':
-                    return redirect(url_for('employee'))
-                elif user.user_role.role_name=='CUSTOMER':
-                    next = request.args.get('next', 'home')
-                    return redirect(url_for(next))
-            else:  # Nếu không tìm thấy người dùng
+            if user:
+                login_user(user)
+                next = request.args.get('next', 'home')
+                return redirect(url_for(next))
+            else:
                 err_msg = 'Username hoặc password KHÔNG chính xác!!!'
 
-        except Exception as ex:  # Bắt lỗi nếu có vấn đề
-            err_msg = 'Hệ thống đang có lỗi: ' + str(ex)  # Thông báo lỗi hệ thống
+        except Exception as ex:
+            err_msg = 'Hệ thống đang có lỗi: ' + str(ex)
 
-    # Render lại trang đăng nhập với thông báo lỗi (nếu có)
     return render_template('login.html', err_msg=err_msg)
-
-
 #Đăng nhập admin
 @app.route('/admin_login', methods=['POST'])
 def login_admin():
@@ -229,7 +221,6 @@ def user_load(user_id):
 
 
 @app.route('/employee')
-@login_required
 def employee():
     return render_template('giaodiennhanvien.html')
 

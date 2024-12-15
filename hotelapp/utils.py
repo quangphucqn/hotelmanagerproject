@@ -1,7 +1,7 @@
 from hotelapp import app,db
 from flask import current_app
 from hotelapp.models import User, Room, RoomType, RoomStatus, UserRole, National, BookingNote, BookingNoteDetails, Bill, \
-    RentalNote
+RentalNote
 from flask_login import current_user
 from flask import render_template, session, redirect, url_for, flash, request
 from datetime import datetime
@@ -204,7 +204,7 @@ def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_
             BookingNoteDetails.checkin_date < checkout_date,
             BookingNoteDetails.checkout_date > checkin_date
         ).exists()
-    ).limit(num_rooms_requested).all()
+    ).limit(num_rooms_requested)
 
     return rooms
 # #đếm sp trong giỏ hàng
@@ -353,7 +353,37 @@ if __name__ == '__main__':
         print(monthly_revenue_report())
         print(usage_density_report())
 
+def create_booking_note(customer_name, phone_number, cccd, email, national_id, user_id):
+    # Tạo một đối tượng BookingNote mới
+    booking_note = BookingNote(
+        customer_name=customer_name,
+        phone_number=phone_number,
+        cccd=cccd,
+        email=email,
+        national_id=national_id,
+        created_date=datetime.now(),
+        user_id=user_id  # Thêm user_id vào đây
+    )
 
+    # Lưu đối tượng BookingNote vào cơ sở dữ liệu
+    db.session.add(booking_note)
+    db.session.commit()  # Commit sau khi thêm booking_note để lấy id của nó
+
+    return booking_note.id  # Trả về ID của booking_note
+def create_booking_note_details(room_data, booking_note_id):
+    # Lưu chi tiết phòng vào BookingNoteDetails
+    for data in room_data:
+        booking_detail = BookingNoteDetails(
+            checkin_date=data['checkin_date'],
+            checkout_date=data['checkout_date'],
+            number_people=data['number_people'],
+            booking_note_id=booking_note_id,  # Gán booking_note.id vào đây
+            room_id=data['room_id']
+        )
+        db.session.add(booking_detail)
+
+    # Commit để lưu toàn bộ thông tin vào cơ sở dữ liệu
+    db.session.commit()
 
 def find_booking_note(customer_name, phone_number):
     results = (
