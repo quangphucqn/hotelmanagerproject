@@ -1,5 +1,3 @@
-import unittest
-
 from sqlalchemy.sql.functions import count
 
 from utils import find_booking_note

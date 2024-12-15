@@ -1,7 +1,7 @@
 from hotelapp import app,db
 from flask import current_app
 from hotelapp.models import User, Room, RoomType, RoomStatus, UserRole, National, BookingNote, BookingNoteDetails, Bill, \
-    RentalNote
+RentalNote
 from flask_login import current_user
 from flask import render_template, session, redirect, url_for, flash, request
 from datetime import datetime
@@ -182,43 +182,76 @@ def find_room(checkin_date, checkout_date, num_rooms_requested):
     return available_room_types
 
 #ĐẶT PHÒNG
-# Lấy danh sách phòng trống chi tiết theo loại, ngày nhận và ngày trả phòng.
-def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested):
-    checkin_date = datetime.strptime(checkin_date, '%Y-%m-%d')
-    checkout_date = datetime.strptime(checkout_date, '%Y-%m-%d')
 
-    # Truy vấn danh sách phòng trống theo loại
-    rooms = db.session.query(Room, RoomType, RoomStatus).join(
-        RoomType, Room.room_type_id == RoomType.id
-    ).join(
-        RoomStatus, Room.room_status_id == RoomStatus.id
-    ).filter(
-        Room.room_type_id == room_type_id,  # Lọc theo loại phòng
-    ).filter(
+# Lấy danh sách phòng trống chi tiết theo loại, ngày nhận và ngày trả phòng.
+# def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested):
+#     checkin_date = datetime.strptime(checkin_date, '%Y-%m-%d')
+#     checkout_date = datetime.strptime(checkout_date, '%Y-%m-%d')
+#
+#     # Truy vấn danh sách phòng trống theo loại
+#     rooms = db.session.query(Room, RoomType, RoomStatus).join(
+#         RoomType, Room.room_type_id == RoomType.id
+#     ).join(
+#         RoomStatus, Room.room_status_id == RoomStatus.id
+#     ).filter(
+#         Room.room_type_id == room_type_id,  # Lọc theo loại phòng
+#     ).filter(
+#         ~db.session.query(BookingNoteDetails).filter(
+#             BookingNoteDetails.room_id == Room.id,
+#             (BookingNoteDetails.checkin_date < checkout_date) &
+#             (BookingNoteDetails.checkout_date > checkin_date)
+#         ).exists()
+#     ).all() # Lấy tất cả các phòng có thể trống
+#
+#     # Lọc các phòng đủ số lượng yêu cầu
+#     available_rooms = []
+#     for room, room_type, room_status in rooms:
+#         if len(available_rooms)< num_rooms_requested:
+#             available_rooms.append((room, room_type, room_status))
+#
+#     return available_rooms
+
+#tìm những phòng trống theo loại phòng đã chọn
+def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested):
+    rooms = db.session.query(Room).filter(
+        Room.room_type_id == room_type_id,
         ~db.session.query(BookingNoteDetails).filter(
             BookingNoteDetails.room_id == Room.id,
-            (BookingNoteDetails.checkin_date < checkout_date) &
-            (BookingNoteDetails.checkout_date > checkin_date)
+            BookingNoteDetails.checkin_date < checkout_date,
+            BookingNoteDetails.checkout_date > checkin_date
         ).exists()
-    ).all() # Lấy tất cả các phòng có thể trống
+    ).limit(num_rooms_requested)
 
-    # Lọc các phòng đủ số lượng yêu cầu
-    available_rooms = []
-    for room, room_type, room_status in rooms:
-        if len(available_rooms)< num_rooms_requested:
-            available_rooms.append((room, room_type, room_status))
+    return rooms
 
-    return available_rooms
+#tính ngày ở
+def calculate_days(checkin_date, checkout_date):
+    # Chuyển đổi ngày nhận và ngày trả thành kiểu datetime
+    checkin = datetime.strptime(checkin_date, '%Y-%m-%d')
+    checkout = datetime.strptime(checkout_date, '%Y-%m-%d')
 
-def count_cart(cart):
-    total_quantity=0
+    # Tính số ngày giữa ngày nhận và ngày trả
+    delta = checkout - checkin
+    return delta.days
 
-    if cart:
-        for c in cart.values():
-            total_quantity +=1
-    return {
-        'total_quantity': total_quantity
-    }
+#tính tiền theo ngày ở , quốc tịch và số khách mỗi phòng
+def calculate_cost(room_data, national_coefficient):
+    total_cost = 0
+    for data in room_data:
+        room_price = data['room_price']
+        checkin_date = datetime.strptime(data['checkin_date'], '%Y-%m-%d')
+        checkout_date = datetime.strptime(data['checkout_date'], '%Y-%m-%d')
+        days_stayed = (checkout_date - checkin_date).days
+
+        # Tính giá tiền mỗi phòng
+        room_cost = room_price * days_stayed
+        if data.get('number_people', 2) > 2:
+            room_cost *= 1.25  # Phụ thu nếu có hơn 2 khách
+        room_cost *= national_coefficient  # Áp dụng hệ số quốc tịch
+
+        total_cost += room_cost
+    return total_cost
+
 
 #THỐNG KÊ
 
@@ -334,7 +367,37 @@ if __name__ == '__main__':
         print(monthly_revenue_report())
         print(usage_density_report())
 
+def create_booking_note(customer_name, phone_number, cccd, email, national_id, user_id):
+    # Tạo một đối tượng BookingNote mới
+    booking_note = BookingNote(
+        customer_name=customer_name,
+        phone_number=phone_number,
+        cccd=cccd,
+        email=email,
+        national_id=national_id,
+        created_date=datetime.now(),
+        user_id=user_id  # Thêm user_id vào đây
+    )
 
+    # Lưu đối tượng BookingNote vào cơ sở dữ liệu
+    db.session.add(booking_note)
+    db.session.commit()  # Commit sau khi thêm booking_note để lấy id của nó
+
+    return booking_note.id  # Trả về ID của booking_note
+def create_booking_note_details(room_data, booking_note_id):
+    # Lưu chi tiết phòng vào BookingNoteDetails
+    for data in room_data:
+        booking_detail = BookingNoteDetails(
+            checkin_date=data['checkin_date'],
+            checkout_date=data['checkout_date'],
+            number_people=data['number_people'],
+            booking_note_id=booking_note_id,  # Gán booking_note.id vào đây
+            room_id=data['room_id']
+        )
+        db.session.add(booking_detail)
+
+    # Commit để lưu toàn bộ thông tin vào cơ sở dữ liệu
+    db.session.commit()
 
 
 def find_booking_note(customer_name, phone_number):

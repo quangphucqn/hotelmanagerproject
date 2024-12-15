@@ -2,40 +2,102 @@
 
 
 {% block title %} Booking Room - Select Your Room {% endblock %}
-
+{% block js %}
+    <script src="{{ url_for('static',filename='js/calculate_cost.js') }}"></script> {% endblock %}
 {% block content %}
-<div class="container mt-5">
-    <h3>Danh sách phòng trống</h3>
-    <form action="#" method="POST">
-        <input type="hidden" name="checkin_date" value="{{ checkin_date }}">
-        <input type="hidden" name="checkout_date" value="{{ checkin_date }}">
-
-        {% for room, room_type, room_status in available_rooms %}
-        <div class="card mb-3">
-            <div class="row g-0">
-                <div class="col-md-4">
-                    <img src="{{ room.image }}" class="img-fluid rounded-start" alt="Room image">
-                </div>
-                <div class="col-md-8">
-                    <div class="card-body">
-                        <h5 class="card-title">Phòng: {{ room.room_address }}</h5>
-                        <p class="card-text">Loại phòng: {{ room_type.room_type_name }}</p>
-                        <p class="card-text">Số người ở: {{ room.max_people }}</p>
-                        <p class="card-text">Giá: {{ room_type.price }} VNĐ</p>
-                        {% if room.id|string in cart %}
-                    <!-- Nếu phòng đã có trong giỏ hàng -->
-                        <a href="#" class="btn btn-success"
-                           onclick="removeFromCart('{{ room.id }}','{{ checkin_date }}', '{{ checkout_date }}', this)">Đã chọn</a>
-                        {% else %}
-                                <!-- Nếu phòng chưa có trong giỏ hàng -->
-                        <a href="#" class="btn btn-primary"
-                                   onclick="addToCart('{{ room.id }}', '{{ checkin_date }}', '{{ checkout_date }}', this)">Chọn phòng</a>
-                        {% endif %}
-                    </div>
-                </div>
+    <div class="container mt-5">
+        <h3>Xác nhận đặt phòng</h3>
+        <form action="{{ url_for('confirm_booking', room_type_id=room_type_id) }}" method="POST">
+            <!-- Thông tin khách hàng -->
+            <div class="mb-3">
+                <label for="customer_name" class="form-label">Tên khách hàng</label>
+                <input type="text" class="form-control" id="customer_name" name="customer_name" required>
             </div>
-        </div>
-        {% endfor %}
-    </form>
-</div>
+            <div class="mb-3">
+                <label for="phone_number" class="form-label">Số điện thoại</label>
+                <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+            </div>
+            <div class="mb-3">
+                <label for="cccd" class="form-label">CCCD/PassPort</label>
+                <input type="text" class="form-control" id="cccd" name="cccd" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email">
+            </div>
+            <div class="mb-3">
+                <label for="national_id" class="form-label">Quốc tịch</label>
+                <select class="form-select" id="national_id" name="national_id" required onchange="updateTotalPrice()">
+                    <option value="1">Việt Nam</option>
+                    <option value="2">Khác</option>
+                </select>
+            </div>
+
+            <!-- Hiển thị danh sách phòng -->
+            <h4>Các phòng được chọn:</h4>
+            <div id="accordion">
+                {% for room_id, room_data in cart.items() %}
+                    <div class="card">
+                        <div class="card-header">
+                            <a class="btn" data-bs-toggle="collapse" href="#collapse{{ room_id }}">
+                                Phòng: {{ room_data.room_address }} - Loại phòng: {{ room_data.room_type_name }}
+                            </a>
+                        </div>
+                        <div id="collapse{{ room_id }}" class="collapse show" data-bs-parent="#accordion">
+                            <div class="card-body">
+                                Giá: <span class="room-price" data-room-price="{{ room_data.room_price }}"
+                                           id="price_{{ room_id }}">
+                            {{ room_data.room_price | format_money }} VNĐ
+                        </span>
+                            </div>
+                            <div class="card-body">
+                                <input type="hidden" id="checkin_date_{{ room_id }}"
+                                       value="{{ room_data.checkin_date }}">
+                                <input type="hidden" id="checkout_date_{{ room_id }}"
+                                       value="{{ room_data.checkout_date }}">
+                                Ngày nhận: {{ room_data.checkin_date }}
+                            </div>
+                            <div class="card-body">
+                                Ngày trả: {{ room_data.checkout_date }}
+                            </div>
+                            <div class="form-check" style="padding-left: 1.2rem">
+                                <label>Số khách:</label>
+                                <div style="padding-top:0.5rem;padding-bottom: 0.5rem ">
+                                    {% for i in range(1, 4) %}
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio"
+                                                   name="number_people_{{ room_id }}"
+                                                   id="inlineRadio{{ i }}_{{ room_id }}"
+                                                   value="{{ i }}"
+                                                   {% if i == room_data.number_people %}checked{% endif %}
+                                                   onchange="updateRoomPrice('{{ room_id }}')">
+                                            <label class="form-check-label"
+                                                   for="inlineRadio{{ i }}_{{ room_id }}">{{ i }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+
+            </div>
+            <h4 id="total_price">Tổng tiền sơ bộ: {{ total_price }} VNĐ</h4>
+
+            <!-- Nút xác nhận -->
+            {% if current_user.is_authenticated %}
+                <button type="submit" class="btn btn-success mt-3">Xác nhận đặt phòng</button>
+            {% else %}
+                <a href="{{ url_for('user_login', next=url_for('booking_room', room_type_id=room_type_id, checkin_date=checkin_date, checkout_date=checkout_date, num_rooms_requested=num_rooms_requested)) }}"
+                   class="btn btn-warning">Đăng nhập để đặt phòng</a>
+            {% endif %}
+
+        </form>
+        <!-- Nút trở lại -->
+        <a href="{{ url_for('clear_session') }}" class="btn btn-secondary mt-3 mb-3">Trở lại</a>
+    </div>
+    <!-- Khi form load xong tự động tính tiền mà chưa cần bắt những sự kiện onchange-->
+    <script type="text/javascript">
+        const cart = {{ session['cart'] | tojson }};
+    </script>
 {% endblock %}
