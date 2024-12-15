@@ -5,8 +5,6 @@ from hotelapp import db, app
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from flask_login import UserMixin
-import cryptography
-print(cryptography.__version__)
 
 
 class UserRole(db.Model):

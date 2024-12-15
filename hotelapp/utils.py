@@ -196,6 +196,8 @@ def find_room(checkin_date, checkout_date, num_rooms_requested):
 #             available_rooms.append((room, room_type, room_status))
 #
 #     return available_rooms
+
+#tìm những phòng trống theo loại phòng đã chọn
 def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested):
     rooms = db.session.query(Room).filter(
         Room.room_type_id == room_type_id,
@@ -207,37 +209,35 @@ def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_
     ).limit(num_rooms_requested)
 
     return rooms
-# #đếm sp trong giỏ hàng
-# def count_cart(cart):
-#     total_quantity=0
-#
-#     if cart:
-#         for c in cart.values():
-#             total_quantity +=1
-#     return {
-#         'total_quantity': total_quantity
-#     }
-# tính toán tổng chi phí đặt phòng
-def calculate_cost(room_data, national_coefficient):
 
+#tính ngày ở
+def calculate_days(checkin_date, checkout_date):
+    # Chuyển đổi ngày nhận và ngày trả thành kiểu datetime
+    checkin = datetime.strptime(checkin_date, '%Y-%m-%d')
+    checkout = datetime.strptime(checkout_date, '%Y-%m-%d')
+
+    # Tính số ngày giữa ngày nhận và ngày trả
+    delta = checkout - checkin
+    return delta.days
+
+#tính tiền theo ngày ở , quốc tịch và số khách mỗi phòng
+def calculate_cost(room_data, national_coefficient):
     total_cost = 0
     for data in room_data:
-        room = Room.query.get(data['room_id'])
-        room_type = room.room_type
-        days_stayed = (datetime.strptime(data['checkout_date'], '%Y-%m-%d') -
-                       datetime.strptime(data['checkin_date'], '%Y-%m-%d')).days
-        room_cost = room_type.price * days_stayed
+        room_price = data['room_price']
+        checkin_date = datetime.strptime(data['checkin_date'], '%Y-%m-%d')
+        checkout_date = datetime.strptime(data['checkout_date'], '%Y-%m-%d')
+        days_stayed = (checkout_date - checkin_date).days
 
-        # Áp dụng hệ số nếu có 3 khách
-        if data['number_people'] == 3:
-            room_cost *= 1.25
+        # Tính giá tiền mỗi phòng
+        room_cost = room_price * days_stayed
+        if data.get('number_people', 2) > 2:
+            room_cost *= 1.25  # Phụ thu nếu có hơn 2 khách
+        room_cost *= national_coefficient  # Áp dụng hệ số quốc tịch
 
-        # Áp dụng hệ số khách nước ngoài
-        room_cost *= national_coefficient
         total_cost += room_cost
     return total_cost
 
-#xác nhận đặt phòng thành công
 
 #THỐNG KÊ
 

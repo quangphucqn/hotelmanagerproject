@@ -65,8 +65,12 @@
                         <div class="col-md-8">
                             <div class="card-body">
                                 <h5 class="card-title">{{ room_type.name }}</h5>
-                                <p class="card-text" style="font-weight: bold;margin-top: 1rem">{{ room_type.price }} VND </p>
+                                <p class="card-text" style="font-weight: bold;margin-top: 1rem"> {{ room_type.price | format_money }} VND </p>
+                                {% if current_user.is_authenticated %}
                                 <a href="{{ url_for('booking_room', room_type_id=room_type.id, checkin_date=checkin_date, checkout_date=checkout_date, num_rooms_requested=num_rooms_requested) }}" class="btn btn-primary">Đặt phòng ngay</a>
+                            {% else %}
+                                <a href="{{ url_for('user_login', next=url_for('booking_room', room_type_id=room_type.id, checkin_date=checkin_date, checkout_date=checkout_date, num_rooms_requested=num_rooms_requested)) }}" class="btn btn-primary" style="background-color: #17a2b8; border: none">Đăng nhập để đặt phòng</a>
+                            {% endif %}
                             </div>
                         </div>
                     </div>
