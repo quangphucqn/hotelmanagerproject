@@ -159,7 +159,7 @@ if __name__ == '__main__':
         password_3 = str(hashlib.md5('phuc'.encode('utf-8')).hexdigest())
         u3 = User(username='phuc', password=password_3, name='phuc', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='default.jpg', user_role_id=3)
         password_4 = str(hashlib.md5('nhat'.encode('utf-8')).hexdigest())
-        u4 = User(username='nhat', password=password_4, name='nhat', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='default.jpg', user_role_id=3)
+        u4 = User(username='nhat', password=password_4, name='nhat', email='plehoang641@gmail.com', birthday=datetime(2004, 2, 6), avatar='images/1.jpg', user_role_id=3)
         db.session.add(u1)
         db.session.add(u2)
         db.session.add(u3)

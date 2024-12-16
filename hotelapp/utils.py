@@ -24,7 +24,7 @@ def load_room():
 #Thêm người dùng
 def add_user(name,username,password,**kwargs):
     password=hashlib.md5(password.strip().encode('utf-8')).hexdigest()
-    user_role = UserRole.query.filter_by(role_name="USER").first()
+    user_role = UserRole.query.filter_by(role_name="CUSTOMER").first()
     user=User(name=name.strip(),
                 username=username.strip(),
                 password=password,
@@ -33,20 +33,13 @@ def add_user(name,username,password,**kwargs):
                 avatar=kwargs.get('avatar'),
                 user_role_id =user_role.id
               )
+    db.session.add(user)
+    db.session.commit()
+    return user
 
 #Kiểm tra đăng nhập
 def check_login(username, password, role_name=None):
-    """
-    Kiểm tra đăng nhập người dùng với vai trò linh hoạt.
 
-    Args:
-        username (str): Tên đăng nhập của người dùng.
-        password (str): Mật khẩu của người dùng.
-        role_name (str): Vai trò của người dùng (ADMIN, CUSTOMER, EMPLOYEE).
-
-    Returns:
-        User object: Trả về người dùng nếu thông tin hợp lệ, nếu không trả về None.
-    """
     if username and password:
         # Mã hóa mật khẩu bằng MD5
         password = hashlib.md5(password.strip().encode('utf-8')).hexdigest()
@@ -59,8 +52,6 @@ def check_login(username, password, role_name=None):
 
         if user and (role_name is None or user.user_role.role_name == role_name):
             return user
-
-    # Trả về None nếu không tìm thấy hoặc thông tin không hợp lệ
     return None
 
 
