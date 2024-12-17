@@ -1,38 +1,71 @@
 {% extends 'layout/base.html' %}
 
-{% block title %}Dang nhap nguoi dung{% endblock %}
+{% block title %}Đăng nhập người dùng{% endblock %}
+
+{% block css %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+{% endblock %}
 
 {% block content %}
-<h1 class="text-center text-danger" >ĐĂNG NHẬP NGƯỜI DÙNG</h1>
-{% if err_msg %}
-<div class="alert alert-danger">
-    <h4>{{ err_msg }}</h4>
-</div>
-{% endif %}
-     <div id="loading-screen">
+<!-- Loading Screen -->
+<div id="loading-screen">
     <div class="lds-roller">
-      <div></div><div></div><div></div><div></div>
-      <div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div>
     </div>
-      <div id="loading-text">Loading...</div>
-  </div>
+    <div id="loading-text">Loading...</div>
+</div>
 
-  <!-- Carousel -->
-  <div id="main-content" style="display: none;">
-<form method="post">
-    <div class="form-group">
-        <label for="username">Tên đăng nhập</label>
-        <input type="text" class="form-control" placeholder="Nhập tên đăng nhập..." id="username" name="username" required/>
+<!-- Main Content -->
+<div id="main-content" style="display: none;">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
+                <div class="card border-0 shadow rounded-3 my-5">
+                    <div class="card-body p-4 p-sm-5">
+                        <!-- Title -->
+                        <h1 class="card-title text-center mb-5 fw-bold"
+                            style="font-family: monospace; font-size: 40px; font-weight: 900; color: black;
+                                   text-shadow: 2px 2px 5px rgba(0,0,0,0.3);">
+                            ĐĂNG NHẬP
+                        </h1>
+
+                        <!-- Login Form -->
+                        <form method="post" action="{{ url_for('user_login') }}">
+                            <!-- Username Input -->
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="username"
+                                       placeholder="Nhập tên đăng nhập..." name="username" required>
+                                <label for="username">Tên đăng nhập</label>
+                            </div>
+
+                            <!-- Password Input -->
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="pass"
+                                       placeholder="Nhập mật khẩu..." name="password" required>
+                                <label for="pass">Mật khẩu</label>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="d-grid">
+                                <button class="btn btn-primary btn-login text-uppercase fw-bold"
+                                        type="submit" style="font-size: 16px; box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);">
+                                    Đăng nhập
+                                </button>
+                            </div>
+                        </form>
+
+                        <hr class="my-4">
+
+                        <!-- Additional Links -->
+                        <a class="d-block text-center small" href="{{ url_for('user_register') }}">
+                            Chưa có tài khoản? Đăng ký ngay
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label for="pass">Mật khẩu</label>
-        <input type="password" class="form-control" placeholder="Nhập mật khẩu..." id="pass" name="password" required/>
-    </div>
-    <br>
-    <input type="submit" value="Đăng nhập" class="btn btn-danger"/>
-</form>
-    </div>
-    </nav>
-  </div>
-<br><br>
+</div>
 {% endblock %}
