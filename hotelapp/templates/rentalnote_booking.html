@@ -6,13 +6,16 @@
 {% block content %}
 
     {#thông báo#}
-    <div class="container">
+      <div class="container">
         {% if message %}
             <div class="alert alert-info">
                 {{ message }}
             </div>
         {% endif %}
     </div>
+
+
+    <div style="color: #007bff; text-align: center;"><h1>Tra Cứu Phiếu Đặt Phòng</h1></div>
 
     <div class="container mb-3">
         <h2>Nhập thông tin khách hàng</h2>
@@ -28,6 +31,7 @@
             <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem">Submit</button>
         </form>
     </div>
+
     {% for booking_note in booking_notes %}
         <form method="post"
               action="{{ url_for('rental_note', customer_name=request.args.get('customer-name'), phone_number=request.args.get('phone-number')) }}">

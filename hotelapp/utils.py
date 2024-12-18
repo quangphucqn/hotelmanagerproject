@@ -1,7 +1,7 @@
-from hotelapp import app,db
+from hotelapp import app, db
 from flask import current_app
 from hotelapp.models import User, Room, RoomType, RoomStatus, UserRole, National, BookingNote, BookingNoteDetails, Bill, \
-RentalNote
+    RentalNote
 from flask_login import current_user
 from flask import render_template, session, redirect, url_for, flash, request
 from datetime import datetime
@@ -30,26 +30,29 @@ def load_nationals():
 def load_room_type():
     return RoomType.query.order_by(RoomType.id).all()
 
+
 def load_room():
     return Room.query.all()
 
-#Thêm người dùng
-def add_user(name,username,password,**kwargs):
-    password=hashlib.md5(password.strip().encode('utf-8')).hexdigest()
+
+# Thêm người dùng
+def add_user(name, username, password, **kwargs):
+    password = hashlib.md5(password.strip().encode('utf-8')).hexdigest()
     user_role = UserRole.query.filter_by(role_name="CUSTOMER").first()
-    user=User(name=name.strip(),
+    user = User(name=name.strip(),
                 username=username.strip(),
                 password=password,
                 email=kwargs.get('email'),
                 birthday=kwargs.get('birthday'),
                 avatar=kwargs.get('avatar'),
-                user_role_id =user_role.id
-              )
+                user_role_id=user_role.id
+                )
     db.session.add(user)
     db.session.commit()
     return user
 
-#Kiểm tra đăng nhập
+
+# Kiểm tra đăng nhập
 def check_login(username, password, role_name=None):
 
     if username and password:
@@ -67,13 +70,15 @@ def check_login(username, password, role_name=None):
     return None
 
 
-#Hàm tải người dùng
+# Hàm tải người dùng
 def get_user_by_id(user_id):
     return User.query.get(user_id)
 
-#Join bảng lấy dữ liệu để thêm vào quản lý phòng
+
+# Join bảng lấy dữ liệu để thêm vào quản lý phòng
 def get_room_by_id(room_id):
     return Room.query.get(room_id)
+
 
 def get_rooms():
     return (db.session.query(
@@ -82,57 +87,8 @@ def get_rooms():
         RoomStatus.status_name,
         RoomType.price
     ).join(RoomType, Room.room_type_id == RoomType.id) \
-     .join(RoomStatus, Room.room_status_id == RoomStatus.id)\
-        .join(National,BookingNote.national_id==National.id).all())
-
-
-
-#Phần xử lí dữ liệu
-def add_bill(rental_note_id):
-    # Kiểm tra rental_note_id trước
-    print(f"Rental Note ID: {rental_note_id}")
-
-    # Sử dụng db.session.get() thay vì query.get()
-    rental_note = db.session.get(RentalNote, rental_note_id)
-    if not rental_note:
-        raise ValueError(f"Phiếu thuê với ID {rental_note_id} không tồn tại!")
-
-    # Lấy thông tin booking_note từ rental_note
-    booking_note = rental_note.booking_note
-    if not booking_note:
-        raise ValueError("Không tìm thấy thông tin đặt phòng liên quan đến phiếu thuê này!")
-
-    total_cost = 0
-    # Duyệt qua các chi tiết phòng trong booking_note
-    for detail in booking_note.rooms:
-        room = detail.room
-        room_type = room.room_type
-        user = booking_note.user
-        national = booking_note.national
-
-        # Tính chi phí cho phòng (giá phòng dành cho 2 người)
-        room_cost = room_type.price * detail.number_people
-
-        # Tính phụ thu nếu số người > 2
-        if detail.number_people > 2:
-            extra_people = detail.number_people - 2
-            room_cost += extra_people * room_type.price * 0.25  # Phụ thu 25% cho mỗi khách thêm
-
-        # Nếu khách là người nước ngoài, nhân hệ số quốc gia
-        if national.coefficient > 1:
-            room_cost *= national.coefficient
-
-        # Cộng chi phí phòng vào tổng chi phí
-        total_cost += room_cost
-
-    # Tạo hóa đơn cho rental_note
-    bill = Bill(total_cost=total_cost, rental_note_id=rental_note.id)
-    db.session.add(bill)
-    db.session.commit()
-
-    return bill
-
-
+            .join(RoomStatus, Room.room_status_id == RoomStatus.id) \
+            .join(National, BookingNote.national_id == National.id).all())
 
 
 # Phần phòng + loại phòng
@@ -145,7 +101,8 @@ def get_quantity_RoomType(room_id):
 
     return soluong
 
-#Đưa ra danh sách phòng
+
+# Đưa ra danh sách phòng
 def room_list():
     # Join bảng room với room_type và room_status
     rooms = db.session.query(Room, RoomType, RoomStatus).join(
@@ -154,6 +111,7 @@ def room_list():
         RoomStatus, Room.room_status_id == RoomStatus.id
     ).all()
     return rooms
+
 
 # TÌM PHÒNG
 # Lấy danh sách phòng trống
@@ -287,6 +245,7 @@ def send_email(to_email, subject, content):
             html_content=content
         )
         # điền api key để gửi mail
+
         response = sg.send(message)
         print(f"Email sent! Status Code: {response.status_code}")
     except Exception as e:
@@ -298,6 +257,8 @@ def convert_to_date(date_value):
     if isinstance(date_value, str):
         return datetime.strptime(date_value, '%Y-%m-%d').date()
     return date_value
+
+
 def apply_date_filters(query, from_date=None, to_date=None):
     if isinstance(from_date, str):
         from_date = convert_to_date(from_date)
@@ -316,10 +277,10 @@ def apply_date_filters(query, from_date=None, to_date=None):
 
     return query
 
+
 # Tính tổng doanh thu
 def grand_total_revenue(from_date=None, to_date=None):
     # Chuyển đổi ngày nếu là string
-
 
     query = db.session.query(func.sum(Bill.total_cost))
 
@@ -327,6 +288,7 @@ def grand_total_revenue(from_date=None, to_date=None):
 
     grand_cost = query.scalar() or 0
     return grand_cost
+
 
 # Thống kê doanh thu theo tháng
 def monthly_revenue_report(from_date=None, to_date=None):
@@ -338,10 +300,10 @@ def monthly_revenue_report(from_date=None, to_date=None):
         func.sum(Bill.total_cost).label('total_cost'),
         func.count(BookingNoteDetails.id).label('total_bookings')
     ).join(Room, RoomType.id == Room.room_type_id
-    ).join(BookingNoteDetails, Room.id == BookingNoteDetails.room_id
-    ).join(BookingNote, BookingNoteDetails.booking_note_id == BookingNote.id
-    ).join(RentalNote, BookingNote.id == RentalNote.booking_note_id
-    ).join(Bill, RentalNote.id == Bill.rental_note_id)
+           ).join(BookingNoteDetails, Room.id == BookingNoteDetails.room_id
+                  ).join(BookingNote, BookingNoteDetails.booking_note_id == BookingNote.id
+                         ).join(RentalNote, BookingNote.id == RentalNote.booking_note_id
+                                ).join(Bill, RentalNote.id == Bill.rental_note_id)
 
     query = apply_date_filters(query, from_date, to_date)
 
@@ -360,11 +322,13 @@ def monthly_revenue_report(from_date=None, to_date=None):
     ]
     return result_with_total_cost, grand_cost
 
+
 # Thống kê mật độ sử dụng phòng
 def usage_density_report(from_date=None, to_date=None):
     # Truy vấn tổng số ngày thuê của tất cả các loại phòng
     total_days_rented_query = db.session.query(
-        func.sum(func.datediff(BookingNoteDetails.checkout_date, BookingNoteDetails.checkin_date)).label('total_days_rented')
+        func.sum(func.datediff(BookingNoteDetails.checkout_date, BookingNoteDetails.checkin_date)).label(
+            'total_days_rented')
     ).join(Room, Room.id == BookingNoteDetails.room_id
     ).join(RoomType, Room.room_type_id == RoomType.id
     ).join(BookingNote, BookingNoteDetails.booking_note_id == BookingNote.id
@@ -377,11 +341,12 @@ def usage_density_report(from_date=None, to_date=None):
     # Truy vấn lấy thông tin loại phòng và số ngày thuê
     query = db.session.query(
         RoomType.room_type_name,
-        func.sum(func.datediff(BookingNoteDetails.checkout_date, BookingNoteDetails.checkin_date)).label('total_days_rented')
+        func.sum(func.datediff(BookingNoteDetails.checkout_date, BookingNoteDetails.checkin_date)).label(
+            'total_days_rented')
     ).join(Room, RoomType.id == Room.room_type_id
-    ).join(BookingNoteDetails, Room.id == BookingNoteDetails.room_id
-    ).join(BookingNote, BookingNoteDetails.booking_note_id == BookingNote.id
-    ).join(RentalNote, BookingNote.id == RentalNote.booking_note_id)
+           ).join(BookingNoteDetails, Room.id == BookingNoteDetails.room_id
+                  ).join(BookingNote, BookingNoteDetails.booking_note_id == BookingNote.id
+                         ).join(RentalNote, BookingNote.id == RentalNote.booking_note_id)
 
     query = apply_date_filters(query, from_date, to_date)
 
@@ -400,10 +365,13 @@ def usage_density_report(from_date=None, to_date=None):
     ]
 
     return result_with_usage_rate
+
+
 if __name__ == '__main__':
     with app.app_context():
         print(monthly_revenue_report())
         print(usage_density_report())
+
 
 def create_booking_note(customer_name, phone_number, cccd, email, national_id, user_id):
     # Tạo một đối tượng BookingNote mới
@@ -422,6 +390,8 @@ def create_booking_note(customer_name, phone_number, cccd, email, national_id, u
     db.session.commit()  # Commit sau khi thêm booking_note để lấy id của nó
 
     return booking_note.id  # Trả về ID của booking_note
+
+
 def create_booking_note_details(room_data, booking_note_id):
     # Lưu chi tiết phòng vào BookingNoteDetails
     for data in room_data:
@@ -444,7 +414,7 @@ def find_booking_note(customer_name, phone_number):
         .filter(
             BookingNote.customer_name == customer_name,
             BookingNote.phone_number == phone_number,
-            # BookingNote.rental_notes == None  # Loại bỏ các BookingNote đã có RentalNote
+            BookingNote.rental_notes == None  # Loại bỏ các BookingNote đã có RentalNote
         )
         .options(
             joinedload(BookingNote.rooms)  # Load BookingNoteDetails liên kết
@@ -454,8 +424,7 @@ def find_booking_note(customer_name, phone_number):
         .all()
     )
     if results:
-     return results
-
+        return results
 
 
 def create_rental_note(booking_note_id):
@@ -473,3 +442,78 @@ def create_rental_note(booking_note_id):
         return rental_note
 
 
+def find_to_payment(customer_name, phone_number):
+    # bills = (
+    #     db.session.query(BookingNote)
+    #     .filter(
+    #         BookingNote.customer_name == customer_name,
+    #         BookingNote.phone_number == phone_number,
+    #         BookingNote.rental_notes != None,  # Loại bỏ các BookingNote chưa có RentalNote
+    #     )
+    #     .options(
+    #         joinedload(BookingNote.rooms)  # Load BookingNoteDetails liên kết
+    #         .joinedload(BookingNoteDetails.room)  # Load Room từ BookingNoteDetails
+    #         .joinedload(Room.room_type),  # Load RoomType từ Room
+    #         joinedload(BookingNote.national),  # Load National từ BookingNote
+    #         joinedload(BookingNote.rental_notes)  # Load RentalNote từ BookingNote
+    #     )
+    #     .all()
+    # )
+    bills = (
+        db.session.query(BookingNote)
+        .join(BookingNote.rental_notes)  # Kết nối với RentalNote
+        .outerjoin(RentalNote.bills)  # Liên kết với Bill để kiểm tra tồn tại Bill
+        .filter(
+            BookingNote.customer_name == customer_name,
+            BookingNote.phone_number == phone_number,
+            BookingNote.rental_notes != None,  # Đảm bảo BookingNote đã có RentalNote
+            RentalNote.bills == None
+        )
+        .all()
+    )
+    if bills:
+     return bills
+
+
+def add_bill(rental_note_id):
+    rental_note = (
+        db.session.query(RentalNote)
+        .filter(
+            RentalNote.id == rental_note_id,
+            RentalNote.booking_note != None,
+            RentalNote.bills== None
+        )
+        .first()  # Dùng first() để chỉ lấy 1 kết quả duy nhất
+    )
+    if rental_note:
+        booking_note = rental_note.booking_note
+        total_cost = 0
+        # Duyệt qua các chi tiết phòng trong booking_note
+        for detail in booking_note.rooms:
+            room = detail.room
+            room_type = room.room_type
+            national = booking_note.national
+
+            # Tính số ngày ở
+            num_days = (detail.checkout_date - detail.checkin_date).days
+            if num_days < 1:
+                num_days = 1  # Đảm bảo ít nhất 1 ngày
+
+            # Tính tiền phòng
+            if detail.number_people < room.max_people:
+                room_cost = room_type.price * num_days
+            else:
+                room_cost = room_type.price * num_days
+                room_cost += room_type.price * num_days * room_type.surcharge
+            # Nếu khách là người nước ngoài, nhân hệ số quốc gia
+            if national.coefficient > 1:
+                room_cost *= national.coefficient
+
+            # Cộng chi phí phòng vào tổng chi phí
+            total_cost += room_cost
+
+        # Tạo hóa đơn cho rental_note
+        bill = Bill(total_cost=total_cost, rental_note_id=rental_note.id)
+        db.session.add(bill)
+        db.session.commit()
+        return bill

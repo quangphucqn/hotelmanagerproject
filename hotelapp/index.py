@@ -1,8 +1,9 @@
 import datetime
 from flask import render_template, request, redirect, url_for,jsonify
 from tabnanny import check
-import ezgmail
 from flask import render_template, request, redirect, url_for,session,jsonify,flash
+from pyexpat.errors import messages
+
 from hotelapp import app, login
 from flask_login import login_user,logout_user,login_required
 import utils
@@ -354,7 +355,7 @@ def view_profile():
 @app.route('/employee')
 @login_required
 def employee():
-    return render_template('giaodiennhanvien.html')
+    return render_template('employee.html')
 
 
 #Lập phiếu thuê đã có phiếu đặt
@@ -386,9 +387,186 @@ def rental_note():
             if not booking_notes:
                 message = "Không tìm thấy phiếu đặt phòng nào. Vui lòng kiểm tra lại thông tin! "
     return render_template(
-        'lapphieuthuephong.html',
+        'rentalnote_booking.html',
         booking_notes=booking_notes,
         message=message
+    )
+@app.route('/rental_note_nobooking', methods=['GET', 'POST'])
+def rental_note_nobooking():
+
+    return render_template(
+        'rentalnote_nobookingnote.html',
+    )
+
+
+@app.route('/payment', methods=['GET', 'POST'])
+def payment():
+    message = None
+    bills = []
+
+    if request.method == 'GET':
+        # Xử lý tìm kiếm BookingNote
+        customer_name = request.args.get('customer-name')
+        phone_number = request.args.get('phone-number')
+        if customer_name or phone_number:
+            bills = utils.find_to_payment(customer_name, phone_number) or []
+            if not bills:
+                message = "Không tìm thấy hoá đơn nào cần thanh toán. Vui lòng kiểm tra lại thông tin!"
+
+    elif request.method == 'POST':
+        # Xử lý khi nhấn "Lập Hoá Đơn"
+        rental_note_id = request.form.get('rt-id')
+        if rental_note_id:
+            result = utils.add_bill(rental_note_id)
+            if result:
+                message = "Lập hoá đơn thành công!"
+            else :
+                message ="Lập hoá đơn thất bại!"
+
+        customer_name = request.args.get('customer-name')
+        phone_number = request.args.get('phone-number')
+        bills = utils.find_to_payment(customer_name, phone_number) or []
+        bills = [note for note in bills if str(note.id) != rental_note_id]
+
+    # Tính tổng tiền từng phòng và gắn vào bill
+    if bills:
+        for bill in bills:
+            bill.total_cost = 0  # Tổng tiền cho từng hóa đơn
+            bill.room_costs = []  # Danh sách tiền từng phòng cho bill
+
+            for detail in bill.rooms:
+                room = detail.room
+                room_type = room.room_type
+                national = bill.national
+
+                # Tính số ngày thuê
+                num_days = (detail.checkout_date - detail.checkin_date).days
+                if num_days < 1:
+                    num_days = 1  # Đảm bảo ít nhất 1 ngày
+
+                # Tính tiền phòng
+                if detail.number_people < room.max_people:
+                    room_cost = room_type.price * num_days
+                else:
+                    room_cost = room_type.price * num_days
+                    room_cost += room_type.price * num_days * room_type.surcharge
+
+                # Áp dụng hệ số quốc gia
+                if national.coefficient > 1:
+                    room_cost *= national.coefficient
+
+                room_cost = round(room_cost, 2)
+                bill.total_cost += room_cost  # Cộng vào tổng tiền của bill
+
+                # Lưu thông tin chi tiết giá từng phòng
+                bill.room_costs.append({
+                    'room_address': room.room_address,
+                    'checkin_date': detail.checkin_date,
+                    'checkout_date': detail.checkout_date,
+                    'number_people': detail.number_people,
+                    'room_cost': room_cost,
+                    'detail_id':detail.id
+                })
+
+    return render_template(
+        'payment.html',
+        message=message,
+        bills=bills
+    )
+
+# @app.route('/find_room_employee',methods=['GET', 'POST'])
+# def find_room_employee():
+#     rt = utils.load_room_type()  # Tải danh sách loại phòng
+#     available_room_types = []  # loại phòng trống đủ điều kiện
+#     err_msg = None  # lỗi
+#     if request.method == 'GET':
+#         checkin_date = request.args.get('checkin-date')  # Ngày nhận từ form
+#         checkout_date = request.args.get('checkout-date')  # Ngày trả từ form
+#         num_rooms_requested = int(request.args.get('room', 1))  # Số phòng yêu cầu (mặc định là 1)
+#         # Khởi tạo các biến cần thiết
+#         # Kiểm tra nếu người dùng đã nhập ngày
+#         if checkin_date and checkout_date:
+#             try:
+#                 # Chuyển đổi chuỗi thành datetime
+#                 checkindate = datetime.strptime(checkin_date, '%Y-%m-%d')
+#                 checkoutdate = datetime.strptime(checkout_date, '%Y-%m-%d')
+#                 d_now = datetime.today()
+#
+#                 # Tính khoảng cách giữa các ngày
+#                 d_in_now = (checkindate - d_now).days
+#                 d_in_out = (checkoutdate - checkindate).days
+#                 d_available= (checkoutdate - d_now).days
+#                 # Ràng buộc kiểm tra ngày hợp lệ
+#                 if d_in_now >= -1 and d_available <= 28:  # Ngày nhận không quá 28 ngày từ hôm nay
+#                     if d_in_out >= 1:  # Ngày trả phải sau ngày nhận ít nhất 1 ngày
+#                         # Tìm phòng trống
+#                         available_room_types = utils.find_room(checkindate, checkoutdate, num_rooms_requested)
+#                         if not available_room_types:
+#                             err_msg = 'Không có phòng nào phù hợp với yêu cầu của bạn.'
+#                     else:
+#                         err_msg = 'Lỗi! Ngày trả phòng phải sau ngày nhận phòng.'
+#                 else:
+#                     err_msg = 'Lỗi! Ngày nhận phòng phải sau ngày hôm nay và không quá 28 ngày từ hôm nay.'
+#             except ValueError:
+#                 err_msg = 'Lỗi định dạng ngày tháng. Vui lòng nhập đúng định dạng.'
+#         else:
+#             err_msg = 'Lỗi! Vui lòng chọn ngày nhận và ngày trả phòng.'
+#
+#         # Trả về giao diện
+#         return render_template(
+#             'bookingroom_employee.html' if not err_msg else 'bookingroom_employee.html',
+#             roomtypes=rt,
+#             available_room_types=available_room_types,
+#             err_msg=err_msg,
+#             checkin_date=checkin_date,
+#             checkout_date=checkout_date,
+#             num_rooms_requested=num_rooms_requested
+#         )
+@app.route('/find_room_employee', methods=['GET', 'POST'])
+def find_room_employee():
+    rt = utils.load_room_type()  # Tải danh sách loại phòng
+    available_room_types = []  # Loại phòng trống
+    err_msg = None  # Thông báo lỗi
+    form_submitted = False  # Trạng thái đã gửi form
+
+    if request.method == 'GET':
+        checkin_date = request.args.get('checkin-date')  # Ngày nhận
+        checkout_date = request.args.get('checkout-date')  # Ngày trả
+        num_rooms_requested = int(request.args.get('room', 1))  # Số phòng yêu cầu
+
+        # Xác nhận form được gửi khi có dữ liệu ngày
+        if checkin_date and checkout_date:
+            form_submitted = True
+            try:
+                # Kiểm tra logic ngày
+                checkindate = datetime.strptime(checkin_date, '%Y-%m-%d')
+                checkoutdate = datetime.strptime(checkout_date, '%Y-%m-%d')
+                d_now = datetime.today()
+
+                d_in_now = (checkindate - d_now).days
+                d_in_out = (checkoutdate - checkindate).days
+                d_available = (checkoutdate - d_now).days
+
+                if d_in_now >= -1 and d_available <= 28:
+                    if d_in_out >= 1:
+                        available_room_types = utils.find_room(checkindate, checkoutdate, num_rooms_requested)
+                        if not available_room_types:
+                            err_msg = 'Không có phòng nào phù hợp với yêu cầu của bạn.'
+                    else:
+                        err_msg = 'Lỗi! Ngày trả phòng phải sau ngày nhận phòng.'
+                else:
+                    err_msg = 'Lỗi! Ngày nhận phòng phải sau hôm nay và không quá 28 ngày từ hôm nay.'
+            except ValueError:
+                err_msg = 'Lỗi định dạng ngày tháng. Vui lòng nhập đúng định dạng.'
+
+    return render_template(
+        'bookingroom_employee.html',
+        roomtypes=rt,
+        available_room_types=available_room_types,
+        err_msg=err_msg if form_submitted else None,  # Chỉ hiển thị lỗi nếu đã gửi form
+        checkin_date=checkin_date,
+        checkout_date=checkout_date,
+        num_rooms_requested=num_rooms_requested
     )
 
 if __name__ == '__main__':
