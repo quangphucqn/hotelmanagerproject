@@ -5,11 +5,23 @@ RentalNote
 from flask_login import current_user
 from flask import render_template, session, redirect, url_for, flash, request
 from datetime import datetime
+import os, ezgmail,locale
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 from sqlalchemy import func
 from sqlalchemy.sql import extract
 import hashlib
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import Session
+import locale
+
+#set format kiêu vn
+locale.setlocale(locale.LC_ALL, 'vi_VN.UTF-8')
+
+# format giá qua tiền vnd
+def format_currency(value):
+    return locale.currency(value, grouping=True)
+
 #Tải quốc tịch
 def load_nationals():
     return National.query.all()
@@ -173,7 +185,7 @@ def find_room(checkin_date, checkout_date, num_rooms_requested):
     return available_room_types
 
 #ĐẶT PHÒNG
-
+#click đặt phòng thì cho ng dùng chọn để thêm vào giỏ hàng
 # Lấy danh sách phòng trống chi tiết theo loại, ngày nhận và ngày trả phòng.
 # def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested):
 #     checkin_date = datetime.strptime(checkin_date, '%Y-%m-%d')
@@ -215,37 +227,70 @@ def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_
 
     return rooms
 
-#tính ngày ở
-def calculate_days(checkin_date, checkout_date):
-    # Chuyển đổi ngày nhận và ngày trả thành kiểu datetime
-    checkin = datetime.strptime(checkin_date, '%Y-%m-%d')
-    checkout = datetime.strptime(checkout_date, '%Y-%m-%d')
+# #tính ngày ở
+# def calculate_days(checkin_date, checkout_date):
+#     # Chuyển đổi ngày nhận và ngày trả thành kiểu datetime
+#     checkin = datetime.strptime(checkin_date, '%Y-%m-%d')
+#     checkout = datetime.strptime(checkout_date, '%Y-%m-%d')
+#
+#     # Tính số ngày giữa ngày nhận và ngày trả
+#     delta = checkout - checkin
+#     return delta.days
+#
 
-    # Tính số ngày giữa ngày nhận và ngày trả
-    delta = checkout - checkin
-    return delta.days
+#tính tiền
+def calculate_room_price(room_data, number_people):
+    """
+    Tính tổng tiền cho một phòng dựa trên số người và số ngày ở.
+    """
+    try:
+        # Lấy giá phòng và số ngày ở
+        room_price = room_data['room_price']
+        checkin_date = room_data['checkin_date']
+        checkout_date = room_data['checkout_date']
+        max_people = room_data['max_people']
 
-#tính tiền theo ngày ở , quốc tịch và số khách mỗi phòng
-def calculate_cost(room_data, national_coefficient):
-    total_cost = 0
-    for data in room_data:
-        room_price = data['room_price']
-        checkin_date = datetime.strptime(data['checkin_date'], '%Y-%m-%d')
-        checkout_date = datetime.strptime(data['checkout_date'], '%Y-%m-%d')
-        days_stayed = (checkout_date - checkin_date).days
+        checkin = datetime.strptime(checkin_date, "%Y-%m-%d")
+        checkout = datetime.strptime(checkout_date, "%Y-%m-%d")
+        num_days = (checkout - checkin).days
 
-        # Tính giá tiền mỗi phòng
-        room_cost = room_price * days_stayed
-        if data.get('number_people', 2) > 2:
-            room_cost *= 1.25  # Phụ thu nếu có hơn 2 khách
+        # Áp dụng logic giá phòng
+        if number_people == max_people:
+            room_price *= 1.25
 
-        total_cost += room_cost
-        if national_coefficient == 2:
-            total_cost*=2 # Áp dụng hệ số quốc tịch
+        room_total_price = room_price * num_days
+        return room_total_price
+    except Exception as e:
+        raise Exception(f"Error in calculate_room_price: {str(e)}")
+    #tính tổng tiền phòng
+def calculate_total_cart_price(cart, national_coefficient=1.0):
+    try:
+        total_cost = 0
+        for room_id, room_data in cart.items():
+            room_total_price = room_data.get('total_price', 0)
+            total_cost += room_total_price
 
-    return total_cost
+        # Áp dụng hệ số quốc tịch nếu cần
+        if national_coefficient == 2:  # Hệ số "Khác"
+            total_cost *= 1.5
+        return total_cost
+    except Exception as e:
+        raise Exception(f"Error in calculate_total_cart_price: {str(e)}")
 
-
+#gửi mail bằng sendgrid
+def send_email(to_email, subject, content):
+    try:
+        message = Mail(
+            from_email='pearlnatureystic@gmail.com',
+            to_emails=to_email,
+            subject=subject,
+            html_content=content
+        )
+        # điền api key để gửi mail
+        response = sg.send(message)
+        print(f"Email sent! Status Code: {response.status_code}")
+    except Exception as e:
+        print(f"Error sending email: {e}")
 #THỐNG KÊ
 
 # Hàm chuyển đổi từ string sang datetime.date

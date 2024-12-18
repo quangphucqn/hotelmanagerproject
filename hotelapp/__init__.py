@@ -10,6 +10,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = 'mysql+pymysql://root:%s@localhost/hotel
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"]=True
 db=SQLAlchemy(app=app)
 
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 cloudinary.config(

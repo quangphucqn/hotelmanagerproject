@@ -5,6 +5,13 @@
 
 {% block content %}
 <div class="container mt-5">
-    <a href="/">Về trang chủ</a>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="alert alert-success">
+            {{ messages[0] }}
+        </div>
+    {% endif %}
+    {% endwith %}
+    <a href="/" class="btn btn-success mt-3 mb-3">Về trang chủ</a>
 </div>
 {% endblock %}
