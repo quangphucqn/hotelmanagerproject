@@ -22,7 +22,9 @@ def home():
 @app.template_filter('format_money')
 def format_money(value):
     return "{:,.0f}".format(value)
-@app.route('/find_room',methods=['GET', 'POST'])
+
+#tìm những loại phòng trống có đủ số phòng, trả loại phòng lên giao diện
+@app.route('/find_room',methods=['GET'])
 def find_room():
     checkin_date = request.args.get('checkin-date')  # Ngày nhận từ form
     checkout_date = request.args.get('checkout-date')  # Ngày trả từ form
@@ -71,6 +73,8 @@ def find_room():
         num_rooms_requested=num_rooms_requested,
         adults=adults
     )
+
+
 #tự động chọn phòng vào giỏ hàng
 @app.route('/booking_room/<int:room_type_id>', methods=['GET', 'POST'])
 @login_required
@@ -107,7 +111,7 @@ def booking_room(room_type_id):
         checkin_date=checkin_date,
         checkout_date=checkout_date
     )
-#form nhập thông tin khách ở và xác nhận đặt phòng
+#form nhập thông tin khách ở và xác nhận đặt phòng,xử lí tạo ra booking note và bookingnote_detail, gửi mail
 @app.route('/confirm_booking', methods=['GET', 'POST'])
 @login_required
 def confirm_booking():
@@ -122,63 +126,58 @@ def confirm_booking():
         national_id = int(request.form.get('national_id'))
         user_id= current_user.id
         try:
-            # Lưu booking note và lấy id
-            booking_note_id = utils.create_booking_note(
-                customer_name, phone_number, cccd, email, national_id, user_id
-            )
+            # Bắt đầu transaction để đảm bảo tính toàn vẹn dữ liệu
+            with db.session.begin_nested():
+                # Lưu BookingNote và lấy ID
+                booking_note_id = utils.create_booking_note(
+                    customer_name, phone_number, cccd, email, national_id, user_id
+                )
 
-            # Lấy dữ liệu phòng từ giỏ hàng
-            room_data = []
-            for room_id, room in cart.items():
-                number_people = int(request.form.get(f'number_people_{room_id}', 1))
-                room_data.append({
-                    'room_id': room_id,
-                    'checkin_date': room['checkin_date'],
-                    'checkout_date': room['checkout_date'],
-                    'number_people': number_people,
-                    'room_price': room['room_price'],
-                })
+                # Chuẩn bị dữ liệu phòng từ giỏ hàng
+                room_data = []
+                for room_id, room in cart.items():
+                    number_people = int(request.form.get(f'number_people_{room_id}', 1))
+                    room_data.append({
+                        'room_id': room_id,
+                        'checkin_date': room['checkin_date'],
+                        'checkout_date': room['checkout_date'],
+                        'number_people': number_people,
+                        'room_price': room['room_price'],
+                    })
 
-            # Lưu booking note details
-            utils.create_booking_note_details(room_data, booking_note_id)
+                # Lưu chi tiết BookingNoteDetails
+                utils.create_booking_note_details(room_data, booking_note_id)
 
-            # tính tiền để gửi mail
-            total_price = utils.format_currency(utils.calculate_total_cart_price(cart,national_id))
+                # Tính tổng tiền trong cart để gửi mail
+                total_price = utils.format_currency(
+                    utils.calculate_total_cart_price(cart, national_id)
+                )
+            #lưu toàn bộ csdl gồm bookingnote và bookingnote_detail
+            db.session.commit()
 
-            # Soạn thông tin phòng
-            room_details = [
-                f"Phòng: {room['room_address']} ({room['room_type_name']}) - Ngày nhận: {room['checkin_date']} - Ngày trả: {room['checkout_date']}"
-                for room_id, room in cart.items()
-            ]
-            room_details_html = "<br>".join(room_details)
 
-            # Gửi email xác nhận
-            email_sent = utils.send_email(
+            # Gửi email xác nhận đặt phòng
+            utils.send_email(
                 to_email=email,
-                subject="Đặt phòng thành công!",
-                content=f"""
-                            <h1>Xác nhận bạn đã đặt phòng</h1>
-                            <p>Xin chào {customer_name},</p>
-                            <p>Cảm ơn bạn đã đặt phòng với chúng tôi. Thông tin chi tiết:</p>
-                            <p>{room_details_html}</p>
-                            <p><strong>Tổng tiền: {total_price} VNĐ</strong></p>
-                            <p>SDT: {phone_number}</p>
-                            <p>Email: {email}</p>
-                            <p>Khi đến nhận phòng hãy đọc tên và SDT để nhân viên kiểm tra bạn nhé.</p>
-                            <p>Chúc bạn một kỳ nghỉ tuyệt vời!</p>
-                            <p>Trân trọng, Pearl Natureystic Hotel</p>
-                        """
+                customer_name=customer_name,
+                cart=cart,
+                total_price=total_price,
+                phone_number=phone_number
             )
-            # Xóa giỏ hàng sau khi thành công
+
+            # Xóa giỏ hàng sau khi hoàn tất đặt phòng
             session.pop('cart', None)
-            flash('Đặt phòng thành công!', 'success')
+            flash('Đặt phòng thành công! Thông tin đặt phòng đã được gửi qua email.', 'success')
             return render_template('confirm_booking.html', success_message="Đặt phòng thành công!")
 
         except Exception as e:
-            print(e)
-            flash('Đã xảy ra lỗi khi đặt phòng. Vui lòng thử lại!', 'error')
-            return render_template('confirm_booking.html', cart=cart)
-    return render_template('confirm_booking.html', cart=cart)
+            db.session.rollback()# Rollback transaction nếu có lỗi
+            session.pop('cart', None)
+            print(f"Lỗi khi xác nhận đặt phòng: {e}")
+            flash('Đã xảy ra lỗi trong quá trình đặt phòng. Vui lòng thử lại.', 'error')
+
+        return render_template('confirm_booking.html', cart=cart)
+
 
 #cập nhật lại số khách ở và tính tạm tiền phòng
 @app.route('/api/calculate_room_price', methods=['POST'])
@@ -213,10 +212,10 @@ def calculate_total_price():
             return jsonify({'error': 'Không có phòng nào trong cart'}), 400
 
         # Lấy hệ số quốc tịch từ client
-        national_coefficient = float(request.json.get('national_coefficient', 1.0))
+        national_id = float(request.json.get('national_id', 1.0))
 
         # Tính tổng giá từ giỏ hàng
-        total_cost = utils.calculate_total_cart_price(session['cart'], national_coefficient)
+        total_cost = utils.calculate_total_cart_price(session['cart'], national_id)
 
         return jsonify({'status': 'success', 'total_cost': total_cost})
     except Exception as e:
@@ -227,6 +226,8 @@ def calculate_total_price():
 def cart():
     cart = session.get('cart', {})
     return render_template('cart.html', cart=cart)
+
+
 #xóa session và trở về find_room.html
 @app.route('/clear_session')
 def clear_session():
@@ -391,13 +392,6 @@ def rental_note():
         booking_notes=booking_notes,
         message=message
     )
-@app.route('/rental_note_nobooking', methods=['GET', 'POST'])
-def rental_note_nobooking():
-
-    return render_template(
-        'rentalnote_nobookingnote.html',
-    )
-
 
 @app.route('/payment', methods=['GET', 'POST'])
 def payment():
@@ -474,54 +468,7 @@ def payment():
         bills=bills
     )
 
-# @app.route('/find_room_employee',methods=['GET', 'POST'])
-# def find_room_employee():
-#     rt = utils.load_room_type()  # Tải danh sách loại phòng
-#     available_room_types = []  # loại phòng trống đủ điều kiện
-#     err_msg = None  # lỗi
-#     if request.method == 'GET':
-#         checkin_date = request.args.get('checkin-date')  # Ngày nhận từ form
-#         checkout_date = request.args.get('checkout-date')  # Ngày trả từ form
-#         num_rooms_requested = int(request.args.get('room', 1))  # Số phòng yêu cầu (mặc định là 1)
-#         # Khởi tạo các biến cần thiết
-#         # Kiểm tra nếu người dùng đã nhập ngày
-#         if checkin_date and checkout_date:
-#             try:
-#                 # Chuyển đổi chuỗi thành datetime
-#                 checkindate = datetime.strptime(checkin_date, '%Y-%m-%d')
-#                 checkoutdate = datetime.strptime(checkout_date, '%Y-%m-%d')
-#                 d_now = datetime.today()
-#
-#                 # Tính khoảng cách giữa các ngày
-#                 d_in_now = (checkindate - d_now).days
-#                 d_in_out = (checkoutdate - checkindate).days
-#                 d_available= (checkoutdate - d_now).days
-#                 # Ràng buộc kiểm tra ngày hợp lệ
-#                 if d_in_now >= -1 and d_available <= 28:  # Ngày nhận không quá 28 ngày từ hôm nay
-#                     if d_in_out >= 1:  # Ngày trả phải sau ngày nhận ít nhất 1 ngày
-#                         # Tìm phòng trống
-#                         available_room_types = utils.find_room(checkindate, checkoutdate, num_rooms_requested)
-#                         if not available_room_types:
-#                             err_msg = 'Không có phòng nào phù hợp với yêu cầu của bạn.'
-#                     else:
-#                         err_msg = 'Lỗi! Ngày trả phòng phải sau ngày nhận phòng.'
-#                 else:
-#                     err_msg = 'Lỗi! Ngày nhận phòng phải sau ngày hôm nay và không quá 28 ngày từ hôm nay.'
-#             except ValueError:
-#                 err_msg = 'Lỗi định dạng ngày tháng. Vui lòng nhập đúng định dạng.'
-#         else:
-#             err_msg = 'Lỗi! Vui lòng chọn ngày nhận và ngày trả phòng.'
-#
-#         # Trả về giao diện
-#         return render_template(
-#             'find_room_employee.html' if not err_msg else 'find_room_employee.html',
-#             roomtypes=rt,
-#             available_room_types=available_room_types,
-#             err_msg=err_msg,
-#             checkin_date=checkin_date,
-#             checkout_date=checkout_date,
-#             num_rooms_requested=num_rooms_requested
-#         )
+#trang tìm phòng của nhân viên - giống tìm phòng khách hàng
 @app.route('/find_room_employee', methods=['GET', 'POST'])
 def find_room_employee():
     rt = utils.load_room_type()  # Tải danh sách loại phòng
@@ -568,6 +515,8 @@ def find_room_employee():
         checkout_date=checkout_date,
         num_rooms_requested=num_rooms_requested
     )
+
+#tự động thêm phòng vào giỏ hàng - nhân viên
 @app.route('/booking_room_employee/<int:room_type_id>', methods=['GET', 'POST'])
 @login_required
 def booking_room_employee(room_type_id):
@@ -617,76 +566,171 @@ def confirm_booking_employee():
         national_id = int(request.form.get('national_id'))
         user_id= current_user.id
         try:
-            # Lưu booking note và lấy id
-            booking_note_id = utils.create_booking_note(
-                customer_name, phone_number, cccd, email, national_id, user_id
-            )
+            # Bắt đầu transaction để đảm bảo tính toàn vẹn dữ liệu
+            with db.session.begin_nested():
+                # Lưu BookingNote và lấy ID
+                booking_note_id = utils.create_booking_note(
+                    customer_name, phone_number, cccd, email, national_id, user_id
+                )
 
-            # Lấy dữ liệu phòng từ giỏ hàng
-            room_data = []
-            for room_id, room in cart.items():
-                number_people = int(request.form.get(f'number_people_{room_id}', 1))
-                room_data.append({
-                    'room_id': room_id,
-                    'checkin_date': room['checkin_date'],
-                    'checkout_date': room['checkout_date'],
-                    'number_people': number_people,
-                    'room_price': room['room_price'],
-                })
+                # Chuẩn bị dữ liệu phòng từ giỏ hàng
+                room_data = []
+                for room_id, room in cart.items():
+                    number_people = int(request.form.get(f'number_people_{room_id}', 1))
+                    room_data.append({
+                        'room_id': room_id,
+                        'checkin_date': room['checkin_date'],
+                        'checkout_date': room['checkout_date'],
+                        'number_people': number_people,
+                        'room_price': room['room_price'],
+                    })
 
-            # Lưu booking note details
-            utils.create_booking_note_details(room_data, booking_note_id)
+                # Lưu chi tiết BookingNoteDetails
+                utils.create_booking_note_details(room_data, booking_note_id)
 
-            # tính tiền để gửi mail
-            total_price = utils.format_currency(utils.calculate_total_cart_price(cart,national_id))
+                # Tính tổng tiền trong cart để gửi mail
+                total_price = utils.format_currency(
+                    utils.calculate_total_cart_price(cart, national_id)
+                )
+            #lưu toàn bộ csdl gồm bookingnote và bookingnote_detail
+            db.session.commit()
 
-            # Soạn thông tin phòng
-            room_details = [
-                f"Phòng: {room['room_address']} ({room['room_type_name']}) - Ngày nhận: {room['checkin_date']} - Ngày trả: {room['checkout_date']}"
-                for room_id, room in cart.items()
-            ]
-            room_details_html = "<br>".join(room_details)
 
-            # Gửi email xác nhận
-            email_sent = utils.send_email(
+            # Gửi email xác nhận đặt phòng
+            utils.send_email(
                 to_email=email,
-                subject="Đặt phòng thành công!",
-                content=f"""
-                            <h1>Xác nhận bạn đã đặt phòng</h1>
-                            <p>Xin chào {customer_name},</p>
-                            <p>Cảm ơn bạn đã đặt phòng với chúng tôi. Thông tin chi tiết:</p>
-                            <p>{room_details_html}</p>
-                            <p><strong>Tổng tiền: {total_price} VNĐ</strong></p>
-                            <p>SDT: {phone_number}</p>
-                            <p>Email: {email}</p>
-                            <p>Khi đến nhận phòng hãy đọc tên và SDT để nhân viên kiểm tra bạn nhé.</p>
-                            <p>Chúc bạn một kỳ nghỉ tuyệt vời!</p>
-                            <p>Trân trọng, Pearl Natureystic Hotel</p>
-                        """
+                customer_name=customer_name,
+                cart=cart,
+                total_price=total_price,
+                phone_number=phone_number
             )
-            # Xóa giỏ hàng sau khi thành công
+
+            # Xóa giỏ hàng sau khi hoàn tất đặt phòng
             session.pop('cart', None)
-            flash('Đặt phòng thành công!', 'success')
+            flash('Đặt phòng thành công! Thông tin đặt phòng đã được gửi qua email.', 'success')
             return render_template('confirm_booking_employee.html', success_message="Đặt phòng thành công!")
 
         except Exception as e:
-            print(e)
-            flash('Đã xảy ra lỗi khi đặt phòng. Vui lòng thử lại!', 'error')
-            return render_template('confirm_booking_employee.html', cart=cart)
-    return render_template('confirm_booking_employee.html', cart=cart)
+            db.session.rollback()# Rollback transaction nếu có lỗi
+            session.pop('cart', None)
+            print(f"Lỗi khi xác nhận đặt phòng: {e}")
+            flash('Đã xảy ra lỗi trong quá trình đặt phòng. Vui lòng thử lại.', 'error')
+        return render_template('confirm_booking_employee.html', cart=cart)
 
+
+#xử lí xóa giỏ hàng và cho trở về trang nhân viên
 @app.route('/clear_session_employee', methods=['GET', 'POST'])
 def clear_session_employee():
     checkin_date = request.args.get('checkin_date')
     checkout_date = request.args.get('checkout_date')
     num_rooms_requested = int(request.args.get('num_rooms_requested', 1))
-    session.pop('cart', None)  # Xóa toàn bộ session
+    session.pop('cart', None)  # Xóa toàn bộ cart
     return render_template('find_room_employee.html',
                            checkin_date=checkin_date,
                            checkout_date=checkout_date,
                            num_rooms_requested=num_rooms_requested)
 
+#xử lí trả về những phòng trống và tự động thêm phòng vào giỏ hàng - employee - giống của KH
+@app.route('/booking_rental_employee/<int:room_type_id>', methods=['GET', 'POST'])
+@login_required
+def booking_rental_employee(room_type_id):
+    checkin_date = request.args.get('checkin_date')
+    checkout_date = request.args.get('checkout_date')
+    num_rooms_requested = int(request.args.get('num_rooms_requested', 1))
 
+    # Lấy danh sách phòng trống chi tiết theo loại
+    available_rooms = utils.find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested)
+    cart = session.get('cart', {})
+    for room in available_rooms[:num_rooms_requested]:
+        room_id = str(room.id)
+        if room_id not in cart:
+            cart[room_id] = {
+                'room_id': room.id,
+                'room_address': room.room_address,
+                'room_type_id': room.room_type.id,
+                'room_type_name': room.room_type.room_type_name,
+                'room_price': room.room_type.price,
+                'checkin_date': checkin_date,
+                'checkout_date': checkout_date,
+                'max_people': room.max_people,
+                'number_people': 1,  # Mặc định là 1 người
+            }
+    session['cart'] = cart
+
+    return render_template(
+        'rentalnote_nobookingnote.html',
+        room_type_id=room_type_id,
+        cart=cart,
+        available_rooms=available_rooms,
+        num_rooms_requested=num_rooms_requested,
+        checkin_date=checkin_date,
+        checkout_date=checkout_date
+    )
+
+
+#xử lí tạo ra phiếu booking note và bookingnote_detail, tạo rentalnote theo bookingnote gửi mail
+@app.route('/confirm_rental_employee/<int:room_type_id>', methods=['POST'])
+def confirm_rental_employee(room_type_id):
+    cart = session.get('cart', {})
+    if not cart:
+        flash("Không có phòng nào trong giỏ hàng!", "danger")
+        return redirect(url_for('find_room'))
+    if request.method == 'POST':
+        # Lấy thông tin khách hàng từ form
+        customer_name = request.form.get('customer_name')
+        phone_number = request.form.get('phone_number')
+        cccd = request.form.get('cccd')
+        email = request.form.get('email')
+        national_id = int(request.form.get('national_id'))
+        user_id = current_user.id  # Lấy thông tin user đang đăng nhập
+        try:
+            # Tạo BookingNote và BookingNoteDetails
+            booking_note_id = utils.create_booking_note(customer_name, phone_number, cccd, email, national_id, user_id)
+
+            # Lấy thông tin chi tiết phòng từ giỏ hàng
+            room_data = []
+            for room_id, room in cart.items():
+                number_people = int(request.form.get(f'number_people_{room_id}', 1))
+                room_data.append({
+                    'room_id': int(room_id),
+                    'checkin_date': room['checkin_date'],
+                    'checkout_date': room['checkout_date'],
+                    'number_people': number_people
+                })
+
+            # Lưu chi tiết phòng vào BookingNoteDetails
+            utils.create_booking_note_details(room_data, booking_note_id)
+
+            # Commit tất cả các thay đổi liên quan đến BookingNote và BookingNoteDetails
+            db.session.commit()
+
+            # Tạo RentalNote từ BookingNote
+            rental_note = utils.create_rental_note(booking_note_id)
+
+            # Gửi email xác nhận và tính tiền
+            total_price = utils.format_currency(utils.calculate_total_cart_price(cart, national_id))
+
+            # Gửi email xác nhận
+            email_sent = utils.send_email(
+                to_email=email,
+                customer_name=customer_name,
+                cart=cart,
+                total_price=total_price,
+                phone_number=phone_number
+            )
+
+            # Xóa giỏ hàng khỏi session
+            session.pop('cart', None)
+            flash('Thuê phòng thành công!', 'success')
+            return render_template('confirm_rental.html', success_message="Thuê phòng thành công!")
+
+        except Exception as e:
+            db.session.rollback()
+            session.pop('cart', None)# Nếu có lỗi thì rollback tất cả các thay đổi
+            print(e)
+            flash('Đã xảy ra lỗi khi thuê phòng. Vui lòng thử lại!', 'error')
+            return render_template('confirm_rental.html', cart=cart)
+    return render_template('confirm_rental.html', cart=cart)
 
 if __name__ == '__main__':
     from hotelapp.admin import*

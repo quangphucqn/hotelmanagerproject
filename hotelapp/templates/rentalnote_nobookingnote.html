@@ -2,10 +2,110 @@
 
 
 {% block title %} Employee {% endblock %}
-
+{% block js %}
+    <script src="{{ url_for('static',filename='js/calculate_cost.js') }}"></script> {% endblock %}
 {% block content %}
 
+    <div class="container mt-5">
+        <h3 class="text-center">Xác nhận thuê phòng</h3>
+        <form action="{{ url_for('confirm_rental_employee', room_type_id=room_type_id) }}" method="POST"
+              class="form-horizontal">
+            <!-- Thông tin khách hàng -->
+            <div class="form-group">
+                <label for="customer_name" class="col-sm-3 control-label">Tên khách hàng</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" id="customer_name" name="customer_name" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="phone_number" class="col-sm-3 control-label">Số điện thoại</label>
+                <div class="col-sm-9">
+                    <input type="tel" class="form-control" id="phone_number" name="phone_number" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="cccd" class="col-sm-3 control-label">CCCD/PassPort</label>
+                <div class="col-sm-9">
+                    <input type="text" class="form-control" id="cccd" name="cccd" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="email" class="col-sm-3 control-label">Email</label>
+                <div class="col-sm-9">
+                    <input type="email" class="form-control" id="email" name="email">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="national_id" class="col-sm-3 control-label">Quốc tịch</label>
+                <div class="col-sm-9">
+                    <select class="form-control" id="national_id" name="national_id" required
+                            onchange="updateTotalPrice()">
+                        <option value="1">Việt Nam</option>
+                        <option value="2">Khác</option>
+                    </select>
+                </div>
+            </div>
 
+            <!-- Danh sách phòng được chọn -->
+            <h4>Các phòng được chọn:</h4>
+            <div id="accordion" class="panel-group">
+                {% for room_id, room_data in cart.items() %}
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ room_id }}">
+                                    Phòng: {{ room_data.room_address }} - Loại phòng: {{ room_data.room_type_name }}
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse{{ room_id }}" class="panel-collapse collapse in">
+                            <div class="panel-body">
+                                Giá: <span class="room-price" data-room-price="{{ room_data.room_price }}"
+                                           id="price_{{ room_id }}">
+                                {{ room_data.room_price | format_money }} VNĐ
+                            </span>
+                            </div>
+                            <div class="panel-body">
+                                Ngày nhận: {{ room_data.checkin_date }}
+                            </div>
+                            <div class="panel-body">
+                                Ngày trả: {{ room_data.checkout_date }}
+                            </div>
+                            <div class="panel-body">
+                                <label>Số khách:</label>
+                                <div>
+                                    {% for i in range(1, 1+room_data.max_people ) %}
+                                        <div class="radio-inline">
+                                            <label>
+                                                <input type="radio" name="number_people_{{ room_id }}"
+                                                       id="inlineRadio{{ i }}_{{ room_id }}" value="{{ i }}"
+                                                       {% if i == room_data.number_people %}checked{% endif %}
+                                                       onchange="updateRoomPrice('{{ room_id }}')">
+                                                {{ i }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <h4 id="total_price">Tổng tiền: {{ total_price }} VNĐ</h4>
+
+            <!-- Nút xác nhận -->
+            <button type="submit" class="btn btn-success mt-3">Xác nhận thuê phòng</button>
+        </form>
+        <!-- Nút trở lại -->
+        <div class="form-group">
+            <a href="{{ url_for('clear_session_employee', checkin_date=checkin_date, checkout_date=checkout_date, num_rooms_requested=num_rooms_requested) }}"
+               class="btn btn-info" style="margin-top: 4px">Trở lại</a>
+        </div>
+    </div>
+    <!-- Khi form load xong tự động tính tiền mà chưa cần bắt những sự kiện onchange-->
+    <script type="text/javascript">
+        const cart = {{ session['cart'] | tojson }};
+    </script>
 
 {% endblock %}
 

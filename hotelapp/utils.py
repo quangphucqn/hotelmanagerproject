@@ -13,6 +13,7 @@ from sqlalchemy.sql import extract
 import hashlib
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 import locale
 
 #set format kiêu vn
@@ -142,37 +143,7 @@ def find_room(checkin_date, checkout_date, num_rooms_requested):
 
     return available_room_types
 
-#ĐẶT PHÒNG
-#click đặt phòng thì cho ng dùng chọn để thêm vào giỏ hàng
-# Lấy danh sách phòng trống chi tiết theo loại, ngày nhận và ngày trả phòng.
-# def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested):
-#     checkin_date = datetime.strptime(checkin_date, '%Y-%m-%d')
-#     checkout_date = datetime.strptime(checkout_date, '%Y-%m-%d')
-#
-#     # Truy vấn danh sách phòng trống theo loại
-#     rooms = db.session.query(Room, RoomType, RoomStatus).join(
-#         RoomType, Room.room_type_id == RoomType.id
-#     ).join(
-#         RoomStatus, Room.room_status_id == RoomStatus.id
-#     ).filter(
-#         Room.room_type_id == room_type_id,  # Lọc theo loại phòng
-#     ).filter(
-#         ~db.session.query(BookingNoteDetails).filter(
-#             BookingNoteDetails.room_id == Room.id,
-#             (BookingNoteDetails.checkin_date < checkout_date) &
-#             (BookingNoteDetails.checkout_date > checkin_date)
-#         ).exists()
-#     ).all() # Lấy tất cả các phòng có thể trống
-#
-#     # Lọc các phòng đủ số lượng yêu cầu
-#     available_rooms = []
-#     for room, room_type, room_status in rooms:
-#         if len(available_rooms)< num_rooms_requested:
-#             available_rooms.append((room, room_type, room_status))
-#
-#     return available_rooms
-
-#tìm những phòng trống theo loại phòng đã chọn
+#tìm những phòng trống theo loại phòng đã chọn - trả về phòng trống
 def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_rooms_requested):
     rooms = db.session.query(Room).filter(
         Room.room_type_id == room_type_id,
@@ -185,28 +156,20 @@ def find_rooms_by_type_and_dates(room_type_id, checkin_date, checkout_date, num_
 
     return rooms
 
-# #tính ngày ở
-# def calculate_days(checkin_date, checkout_date):
-#     # Chuyển đổi ngày nhận và ngày trả thành kiểu datetime
-#     checkin = datetime.strptime(checkin_date, '%Y-%m-%d')
-#     checkout = datetime.strptime(checkout_date, '%Y-%m-%d')
-#
-#     # Tính số ngày giữa ngày nhận và ngày trả
-#     delta = checkout - checkin
-#     return delta.days
-#
-
 #tính tiền
 def calculate_room_price(room_data, number_people):
     """
     Tính tổng tiền cho một phòng dựa trên số người và số ngày ở.
     """
     try:
+
         # Lấy giá phòng và số ngày ở
+        room_type_id = room_data['room_type_id']
         room_price = room_data['room_price']
         checkin_date = room_data['checkin_date']
         checkout_date = room_data['checkout_date']
         max_people = room_data['max_people']
+        room_type = db.session.query(RoomType).filter(RoomType.id == room_type_id).first()  # lấy tỉ lệ phụ phí
 
         checkin = datetime.strptime(checkin_date, "%Y-%m-%d")
         checkout = datetime.strptime(checkout_date, "%Y-%m-%d")
@@ -214,38 +177,63 @@ def calculate_room_price(room_data, number_people):
 
         # Áp dụng logic giá phòng
         if number_people == max_people:
-            room_price *= 1.25
+            room_price *= (1+room_type.surcharge)
 
         room_total_price = room_price * num_days
         return room_total_price
     except Exception as e:
         raise Exception(f"Error in calculate_room_price: {str(e)}")
     #tính tổng tiền phòng
-def calculate_total_cart_price(cart, national_coefficient=1.0):
+def calculate_total_cart_price(cart, national_id):
     try:
         total_cost = 0
+        national = db.session.query(National).filter(National.id == national_id).first()
         for room_id, room_data in cart.items():
             room_total_price = room_data.get('total_price', 0)
             total_cost += room_total_price
 
         # Áp dụng hệ số quốc tịch nếu cần
-        if national_coefficient == 2:  # Hệ số "Khác"
-            total_cost *= 1.5
+        if national_id == national.id:  # Hệ số "Khác"
+            total_cost *= national.coefficient
         return total_cost
     except Exception as e:
         raise Exception(f"Error in calculate_total_cart_price: {str(e)}")
 
 #gửi mail bằng sendgrid
-def send_email(to_email, subject, content):
+def send_email(to_email, customer_name, cart, total_price, phone_number):
     try:
+        # Soạn tiêu đề
+        subject = f"ĐẶT PHÒNG THÀNH CÔNG - Pearl Natureystic Hotel"
+
+        # Soạn nội dung chi tiết phòng từ cart
+        room_details_html = "<br>".join([
+            f"Phòng: {room['room_address']} ({room['room_type_name']}) - Ngày nhận: {room['checkin_date']} - Ngày trả: {room['checkout_date']}"
+            for room_id, room in cart.items()
+        ])
+
+        # Soạn nội dung email
+        content = f"""
+            <h1>Xác nhận bạn đã đặt phòng</h1>
+            <p>Xin chào {customer_name},</p>
+            <p>Cảm ơn bạn đã đặt phòng với chúng tôi. Thông tin chi tiết:</p>
+            <p>{room_details_html}</p>
+            <p><strong>Tổng tiền: {total_price} VNĐ</strong></p>
+            <p>SDT: {phone_number}</p>
+            <p>Email: {to_email}</p>
+            <p>Khi đến nhận phòng hãy đọc tên và SDT để nhân viên kiểm tra bạn nhé.</p>
+            <p>Chúc bạn một kỳ nghỉ tuyệt vời!</p>
+            <p>Trân trọng, Pearl Natureystic Hotel</p>
+        """
+
+        # Tạo email
         message = Mail(
             from_email='pearlnatureystic@gmail.com',
             to_emails=to_email,
             subject=subject,
             html_content=content
         )
-        # điền api key để gửi mail
 
+        #chỗ này điền api key để gửi mail
         response = sg.send(message)
         print(f"Email sent! Status Code: {response.status_code}")
     except Exception as e:
@@ -385,10 +373,10 @@ def create_booking_note(customer_name, phone_number, cccd, email, national_id, u
         user_id=user_id  # Thêm user_id vào đây
     )
 
-    # Lưu đối tượng BookingNote vào cơ sở dữ liệu
-    db.session.add(booking_note)
-    db.session.commit()  # Commit sau khi thêm booking_note để lấy id của nó
 
+    db.session.add(booking_note)
+    # Chưa commit
+    db.session.flush()  # Flush để lấy ID của booking_note
     return booking_note.id  # Trả về ID của booking_note
 
 
@@ -404,8 +392,7 @@ def create_booking_note_details(room_data, booking_note_id):
         )
         db.session.add(booking_detail)
 
-    # Commit để lưu toàn bộ thông tin vào cơ sở dữ liệu
-    db.session.commit()
+    # Chưa commit
 
 
 def find_booking_note(customer_name, phone_number):

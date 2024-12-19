@@ -1,103 +1,3 @@
-{##}
-{#{% extends 'employee/base_employ.html' %}#}
-{##}
-{#{% block title %} Employee {% endblock %}#}
-{##}
-{#{% block content %}#}
-{# <!--Form search -->#}
-{#    <div class="hotel-search-form mt-2 mb-2">#}
-{#        <form action="{{ url_for('find_room_employee') }}" method="get">#}
-{#            {% if err_msg %}#}
-{#                <div class="alert alert-danger">#}
-{#                    {{ err_msg }}#}
-{#                </div>#}
-{#            {% endif %}#}
-{##}
-{#            <div class="row justify-content-between align-items-end">#}
-{#                <div class="col-6 col-md-2 col-lg-3">#}
-{#                    <label for="checkIn">Check In</label>#}
-{#                    <input type="date" class="form-control" id="checkIn" name="checkin-date" value="{{ checkin_date }}" required>#}
-{#                </div>#}
-{#                <div class="col-6 col-md-2 col-lg-3">#}
-{#                    <label for="checkOut">Check Out</label>#}
-{#                    <input type="date" class="form-control" id="checkOut" name="checkout-date" value="{{ checkout_date }}" required>#}
-{#                </div>#}
-{#                <div class="col-4 col-md-1">#}
-{#                    <label for="room">Room</label>#}
-{#                    <select name="room" id="room" class="form-select">#}
-{#                        <option value="1" {% if num_rooms_requested == 1 %}selected{% endif %}>1</option>#}
-{#                        <option value="2" {% if num_rooms_requested == 2 %}selected{% endif %}>2</option>#}
-{#                        <option value="3" {% if num_rooms_requested == 3 %}selected{% endif %}>3</option>#}
-{#                        <option value="4" {% if num_rooms_requested == 4 %}selected{% endif %}>4</option>#}
-{#                    </select>#}
-{#                </div>#}
-{#                <div class="col-4 col-md-1">#}
-{#                    <label for="adults">Adult</label>#}
-{#                    <select name="adults" id="adults" class="form-select" >#}
-{#                        <option value="1" {% if adults == 1 %}selected{% endif %}>1</option>#}
-{#                        <option value="2" {% if adults == 2 %}selected{% endif %}>2</option>#}
-{#                        <option value="3" {% if adults == 3 %}selected{% endif %}>3</option>#}
-{#                        <option value="4" {% if adults == 4 %}selected{% endif %}>4</option>#}
-{#                    </select>#}
-{#                </div>#}
-{#                <div class="col-12 col-md-3" style="margin-top: 25px"  >#}
-{#                    <button type="submit" class="form-control btn roberto-btn w-100">#}
-{#                        Check Availability#}
-{#                    </button>#}
-{#                </div>#}
-{#            </div>#}
-{#        </form>#}
-{#    </div>#}
-{##}
-{##}
-{#    {% if available_room_types %}#}
-{#        <div class="room-show mt-5">#}
-{#            {% for room_type in available_room_types %}#}
-{#                <div class="card mb-3" style="width: 100%;">#}
-{#                    <div class="row g-0">#}
-{#                        <div class="col-md-4">#}
-{#                            <img src="https://getwallpapers.com/wallpaper/full/e/0/7/1111915-widescreen-maldives-wallpaper-1920x1080-full-hd.jpg"#}
-{#                                 class="img-fluid rounded-start" alt="Room image">#}
-{#                        </div>#}
-{#                        <div class="col-md-8">#}
-{#                            <div class="card-body">#}
-{#                                <h5 class="card-title">{{ room_type.name }}</h5>#}
-{#                                <p class="card-text" style="font-weight: bold;margin-top: 1rem"> {{ room_type.price | format_money }} VND </p>#}
-{#                                {% if current_user.is_authenticated %}#}
-{#                                <a href="{{ url_for('booking_room_employee', room_type_id=room_type.id, checkin_date=checkin_date, checkout_date=checkout_date, num_rooms_requested=num_rooms_requested) }}" class="btn btn-primary">Đặt phòng ngay</a>#}
-{#                            {% else %}#}
-{#                                <a href="{{ url_for('user_login', next=url_for('booking_room_employee', room_type_id=room_type.id, checkin_date=checkin_date, checkout_date=checkout_date, num_rooms_requested=num_rooms_requested)) }}" class="btn btn-primary" style="background-color: #17a2b8; border: none">Đăng nhập để đặt phòng</a>#}
-{#                            {% endif %}#}
-{#                            </div>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                </div>#}
-{#            {% endfor %}#}
-{#        </div>#}
-{#    {% endif %}#}
-{#<style>#}
-{#    .image-container {#}
-{#        width: 100%;#}
-{#        height: 100%;#}
-{#        overflow: hidden;#}
-{#    }#}
-{#    .image-container img {#}
-{#        width: 100%;#}
-{#        height: auto;#}
-{#    }#}
-{#    .card-body {#}
-{#        display: flex;#}
-{#        flex-direction: column;#}
-{#        justify-content: space-between;#}
-{#    }#}
-{#    .room-card {#}
-{#        border-radius: 10px;#}
-{#        border: 1px solid #ddd;#}
-{#        margin-top: 10px;#}
-{#        padding: 10px;#}
-{#    }#}
-{#</style>#}
-{#{% endblock %}#}
 {% extends 'employee/base_employ.html' %}
 
 {% block title %} Employee {% endblock %}
@@ -156,7 +56,8 @@
                             </div>
                             <div>
                                 {% if current_user.is_authenticated %}
-                                    <a href="{{ url_for('booking_room_employee', room_type_id=room_type.id, checkin_date=checkin_date, checkout_date=checkout_date, num_rooms_requested=num_rooms_requested) }}" class="btn btn-primary">Đặt phòng ngay</a>
+                                    <a href="{{ url_for('booking_room_employee', room_type_id=room_type.id, checkin_date=checkin_date, checkout_date=checkout_date, num_rooms_requested=num_rooms_requested) }}" class="btn btn-primary">Đặt phòng</a>
+                                    <a href="{{ url_for('booking_rental_employee', room_type_id=room_type.id, checkin_date=checkin_date, checkout_date=checkout_date, num_rooms_requested=num_rooms_requested) }}" class="btn btn-primary">Thuê phòng ngay</a>
                                 {% else %}
                                     <a href="{{ url_for('user_login', next=url_for('booking_room_employee', room_type_id=room_type.id, checkin_date=checkin_date, checkout_date=checkout_date, num_rooms_requested=num_rooms_requested)) }}" class="btn btn-primary" style="background-color: #17a2b8; border: none;">Đăng nhập để đặt phòng</a>
                                 {% endif %}
