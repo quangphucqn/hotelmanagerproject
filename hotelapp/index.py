@@ -1,13 +1,10 @@
-import datetime
-from flask import render_template, request, redirect, url_for,jsonify
-from tabnanny import check
 
 from flask import render_template, request, redirect, url_for,session,jsonify,flash
-from hotelapp import app, login
-from flask_login import login_user,logout_user,login_required
-import utils
+from hotelapp import app, login,db
+from flask_login import login_user,logout_user,login_required,current_user
 import cloudinary.uploader
 from hotelapp.models import User
+import datetime
 
 #Trang chủ
 @app.route('/')
@@ -274,12 +271,13 @@ def user_login():
             # Lấy tên đăng nhập và mật khẩu từ form
             username = request.form.get('username')
             password = request.form.get('password')
+            remember = 'remember' in request.form
 
             # Gọi hàm check_login để kiểm tra người dùng
             user = utils.check_login(username=username, password=password)
 
             if user:  # Nếu tìm thấy người dùng
-                login_user(user)  # Đăng nhập người dùng
+                login_user(user,remember=remember)  # Đăng nhập người dùng
 
                 # Kiểm tra vai trò của người dùng
                 if user.user_role.role_name == 'EMPLOYEE':
@@ -299,22 +297,6 @@ def user_login():
 
     # Render lại trang đăng nhập với thông báo lỗi (nếu có)
     return render_template('login.html', err_msg=err_msg)
-#Đăng nhập admin
-@app.route('/admin_login', methods=['POST'])
-def login_admin():
-    username = request.form.get('username')
-    password = request.form.get('password')
-
-    user = utils.check_login(username=username,
-                                 password=password,
-                                 role_name="ADMIN")
-
-    if user:
-            login_user(user=user)
-            return redirect('/admin')
-    else:
-            return redirect(url_for('login_admin'))
-
 #Đăng xuất
 @app.route('/user_logout')
 def user_logout():
@@ -373,6 +355,9 @@ def rental_note():
         booking_notes=booking_notes,
         message=message
     )
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 if __name__ == '__main__':
     from hotelapp.admin import*
