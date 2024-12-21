@@ -43,7 +43,7 @@ function updateRoomPrice(roomId) {
 }
 
 function updateTotalPrice() {
-    const nationalCoefficient = document.getElementById('national_id').value;
+    const nationalID = document.getElementById('national_id').value;
 
     fetch('/api/calculate_total_price', {
         method: 'POST',
@@ -51,7 +51,7 @@ function updateTotalPrice() {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            national_coefficient: nationalCoefficient
+            national_id: nationalID
         })
     })
     .then(response => response.json())

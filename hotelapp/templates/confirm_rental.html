@@ -1,7 +1,7 @@
-{% extends 'layout/base.html' %}
+{% extends 'employee/base_employ.html' %}
 
 
-{% block title %} Booking Success {% endblock %}
+{% block title %} Employee {% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -12,6 +12,7 @@
         </div>
     {% endif %}
     {% endwith %}
-    <a href="/" class="btn btn-success mt-3 mb-3">Về trang chủ</a>
+    <a href="{{ url_for('employee') }}" class="btn btn-success mt-3 mb-3">Về trang nhân viên</a>
 </div>
+
 {% endblock %}
