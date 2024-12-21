@@ -30,6 +30,9 @@
                                    text-shadow: 2px 2px 5px rgba(0,0,0,0.3);">
                             ĐĂNG NHẬP
                         </h1>
+                         {% if err_msg %}
+                            <div class="alert alert-danger">{{ err_msg }}</div>
+                        {% endif %}
 
                         <!-- Login Form -->
                         <form method="post" action="{{ url_for('user_login') }}">
@@ -46,7 +49,6 @@
                                        placeholder="Nhập mật khẩu..." name="password" required>
                                 <label for="pass">Mật khẩu</label>
                             </div>
-
                             <!-- Submit Button -->
                             <div class="d-grid">
                                 <button class="btn btn-primary btn-login text-uppercase fw-bold"

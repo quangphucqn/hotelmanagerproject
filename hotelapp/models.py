@@ -285,6 +285,3 @@ if __name__ == '__main__':
         db.session.add(bnd30)
         db.session.commit()
 
-
-    def price(self):
-        return self.room_type.price if self.room_type else None
