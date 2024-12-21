@@ -1,66 +1,172 @@
+{##}
+{#{% extends 'employee/base_employ.html' %}#}
+{##}
+{#{% block title %} Employee {% endblock %}#}
+{##}
+{#{% block content %}#}
+{#    <div class="container">#}
+{#        {% if message %}#}
+{#            <div class="alert alert-info">{{ message }}</div>#}
+{#        {% endif %}#}
+{#    </div>#}
+{##}
+{#    <div style="color: #007bff; text-align: center;">#}
+{#        <h1>Tra Cứu Hoá Đơn Cần Thanh Toán</h1>#}
+{#    </div>#}
+{##}
+{#    <div class="container mb-3">#}
+{#        <h2>Nhập thông tin khách hàng</h2>#}
+{#        <form method="get" action="{{ url_for('payment') }}">#}
+{#            <div class="form-floating mb-3 mt-3">#}
+{#                <input type="text" class="form-control" placeholder="Tên khách hàng" name="customer-name">#}
+{#            </div>#}
+{#            <div class="form-floating mt-3 mb-3">#}
+{#                <input type="text" class="form-control" placeholder="Số điện thoại" name="phone-number">#}
+{#            </div>#}
+{#            <button type="submit" class="btn btn-primary">Submit</button>#}
+{#        </form>#}
+{#    </div>#}
+{##}
+{#    {% for bill in bills %}#}
+{#        <div class="container" style="margin-top: 0.5rem; background-color: skyblue; border-radius: 10px;">#}
+{#            <form method="post"#}
+{#                  action="{{ url_for('create_payment_link', customer_name=request.args.get('customer-name'), phone_number=request.args.get('phone-number')) }}">#}
+{##}
+{#                <div>#}
+{#                    <h4><strong>ID Phiếu Thuê:</strong>#}
+{#                        <input name="rt-id" style="border: none; background-color: skyblue" type="text"#}
+{#                               value="{{ bill.rental_notes.id }}" readonly>#}
+{#                    </h4>#}
+{#                </div>#}
+{#                <div><h4><strong>Tên Khách Hàng:</strong> {{ bill.customer_name }}</h4></div>#}
+{#                <div><h4><strong>Số Điện Thoại:</strong> {{ bill.phone_number }}</h4></div>#}
+{##}
+{#                <div><h4><strong>Các Phòng Đặt:</strong></h4></div>#}
+{#                <div class="panel-group" id="accordion">#}
+{#                    {% for room in bill.room_costs %}#}
+{#                        <div class="panel panel-default">#}
+{#                            <div class="panel-heading">#}
+{#                                <h4 class="panel-title">#}
+{#                                    <a data-toggle="collapse" data-parent="#accordion"#}
+{#                                       href="#collapse{{ room.detail_id }}">#}
+{#                                        Phòng: {{ room.room_address }}#}
+{#                                    </a>#}
+{#                                </h4>#}
+{#                            </div>#}
+{#                            <div id="collapse{{ room.detail_id }}" class="panel-collapse collapse">#}
+{#                                <div class="panel-body"><h5><strong>Ngày Nhận:</strong> {{ room.checkin_date }}</h5>#}
+{#                                </div>#}
+{#                                <div class="panel-body"><h5><strong>Ngày Trả:</strong> {{ room.checkout_date }}</h5>#}
+{#                                </div>#}
+{#                                <div class="panel-body"><h5><strong>Số Người Ở:</strong> {{ room.number_people }}</h5>#}
+{#                                </div>#}
+{#                                <div class="panel-body"><h5><strong>Giá#}
+{#                                    Phòng:</strong> {{ room.room_cost | format_money }} VND</h5></div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    {% endfor %}#}
+{#                </div>#}
+{##}
+{#                <h4 class="text-danger" name="t_c"><strong>Tổng Tiền Hoá#}
+{#                    Đơn:</strong> {{ bill.total_cost | format_money }} VND</h4>#}
+{#                <button type="submit" class="btn btn-primary" style="margin-bottom: 0.5rem;">Thanh Toán online</button>#}
+{##}
+{#                <input type="hidden" name="c-n" value="{{ bill.customer_name }}">#}
+{#                <input type="hidden" name="p-n" value="{{ bill.phone_number }}">#}
+{#                <input type="hidden" name="total_cost" value="{{ bill.total_cost }}">#}
+{##}
+{#            </form>#}
+{#            <form method="post" action="{{ url_for('payment_offline') }}">#}
+{#                <input name="id" type="hidden" value="{{ bill.rental_notes.id }}">#}
+{#                <button type="submit" class="btn btn-primary" style="margin-bottom: 0.5rem;">Thanh Toán trực tiếp#}
+{#                </button>#}
+{#            </form>#}
+{#        </div>#}
+{#    {% endfor %}#}
+{#{% endblock %}#}
 {% extends 'employee/base_employ.html' %}
+
 {% block title %} Employee {% endblock %}
 
 {% block content %}
-<div class="container">
-    {% if message %}
-        <div class="alert alert-info">{{ message }}</div>
-    {% endif %}
-</div>
+    <div class="container">
+        {% if message %}
+            <div class="alert alert-info">{{ message }}</div>
+        {% endif %}
+    </div>
 
-<div style="color: #007bff; text-align: center;">
-    <h1>Tra Cứu Hoá Đơn Cần Thanh Toán</h1>
-</div>
+    <div style="color: #007bff; text-align: center;">
+        <h1>Tra Cứu Hoá Đơn Cần Thanh Toán</h1>
+    </div>
 
-<div class="container mb-3">
-    <h2>Nhập thông tin khách hàng</h2>
-    <form method="get" action="{{ url_for('payment') }}">
-        <div class="form-floating mb-3 mt-3">
-            <input type="text" class="form-control" placeholder="Tên khách hàng" name="customer-name">
-        </div>
-        <div class="form-floating mt-3 mb-3">
-            <input type="text" class="form-control" placeholder="Số điện thoại" name="phone-number">
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
-</div>
+    <div class="container mb-3">
+        <h2>Nhập thông tin khách hàng</h2>
+        <form method="get" action="{{ url_for('payment') }}">
+            <div class="form-floating mb-3 mt-3">
+                <input type="text" class="form-control" placeholder="Tên khách hàng" name="customer-name">
+            </div>
+            <div class="form-floating mt-3 mb-3">
+                <input type="text" class="form-control" placeholder="Số điện thoại" name="phone-number">
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
 
-{% for bill in bills %}
-<form method="post" action="{{ url_for('payment', customer_name=request.args.get('customer-name'), phone_number=request.args.get('phone-number')) }}">
-    <div class="container" style="margin-top: 0.5rem; background-color: skyblue; border-radius: 10px;">
-        <div>
-            <h4><strong>ID Phiếu Thuê:</strong>
-                <input name="rt-id" style="border: none; background-color: skyblue" type="text" value="{{ bill.rental_notes.id }}" readonly>
-            </h4>
-        </div>
-        <div><h4><strong>Tên Khách Hàng:</strong> {{ bill.customer_name }}</h4></div>
-        <div><h4><strong>Số Điện Thoại:</strong> {{ bill.phone_number }}</h4></div>
+    {% for bill in bills %}
+        <div class="container" style="margin-top: 0.5rem; background-color: skyblue; border-radius: 10px;">
+            <div>
+                <h4><strong>ID Phiếu Thuê:</strong>
+                    <input name="rt-id" style="border: none; background-color: skyblue" type="text" value="{{ bill.rental_notes.id }}" readonly>
+                </h4>
+                <h4><strong>Tên Khách Hàng:</strong> {{ bill.customer_name }}</h4>
+                <h4><strong>Số Điện Thoại:</strong> {{ bill.phone_number }}</h4>
+            </div>
 
-        <div><h4><strong>Các Phòng Đặt:</strong></h4></div>
-        <div class="panel-group" id="accordion">
-            {% for room in bill.room_costs %}
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h4 class="panel-title">
-                        <a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ room.detail_id }}">
-                            Phòng: {{ room.room_address }}
-                        </a>
-                    </h4>
+            <div><h4><strong>Các Phòng Đặt:</strong></h4></div>
+            <div class="panel-group" id="accordion">
+                {% for room in bill.room_costs %}
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ room.detail_id }}">
+                                    Phòng: {{ room.room_address }}
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse{{ room.detail_id }}" class="panel-collapse collapse">
+                            <div class="panel-body"><h5><strong>Ngày Nhận:</strong> {{ room.checkin_date }}</h5></div>
+                            <div class="panel-body"><h5><strong>Ngày Trả:</strong> {{ room.checkout_date }}</h5></div>
+                            <div class="panel-body"><h5><strong>Số Người Ở:</strong> {{ room.number_people }}</h5></div>
+                            <div class="panel-body"><h5><strong>Giá Phòng:</strong> {{ room.room_cost | format_money }} VND</h5></div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <h4 class="text-danger" name="t_c"><strong>Tổng Tiền Hoá Đơn:</strong> {{ bill.total_cost | format_money }} VND</h4>
+
+            <!-- Đặt hai nút thanh toán nằm ngang hàng -->
+            <div class="row">
+                <!-- Nút Thanh Toán Online -->
+                <div class="col-sm-6">
+                    <form method="post" action="{{ url_for('create_payment_link', customer_name=request.args.get('customer-name'), phone_number=request.args.get('phone-number')) }}">
+                        <input type="hidden" name="rt-id" value="{{ bill.rental_notes.id }}">
+                        <input type="hidden" name="c-n" value="{{ bill.customer_name }}">
+                        <input type="hidden" name="p-n" value="{{ bill.phone_number }}">
+                        <input type="hidden" name="total_cost" value="{{ bill.total_cost }}">
+                        <button type="submit" class="btn btn-success" style="width: 100%; margin-bottom: 0.5rem;">Thanh Toán Online</button>
+                    </form>
                 </div>
-                <div id="collapse{{ room.detail_id }}" class="panel-collapse collapse">
-                    <div class="panel-body"><h5><strong>Ngày Nhận:</strong> {{ room.checkin_date }}</h5></div>
-                    <div class="panel-body"><h5><strong>Ngày Trả:</strong> {{ room.checkout_date }}</h5></div>
-                    <div class="panel-body"><h5><strong>Số Người Ở:</strong> {{ room.number_people }}</h5></div>
-                    <div class="panel-body"><h5><strong>Giá Phòng:</strong> {{ room.room_cost | format_money }} VND</h5></div>
+
+                <!-- Nút Thanh Toán Trực Tiếp -->
+                <div class="col-sm-6">
+                    <form method="post" action="{{ url_for('payment_offline') }}">
+                        <input name="id" type="hidden" value="{{ bill.rental_notes.id }}">
+                        <button type="submit" class="btn btn-danger" style="width: 100%;">Thanh Toán Trực Tiếp</button>
+                    </form>
                 </div>
             </div>
-            {% endfor %}
         </div>
-
-        <h4 class="text-danger"><strong>Tổng Tiền Hoá Đơn:</strong> {{ bill.total_cost | format_money }} VND</h4>
-
-        <button type="submit" class="btn btn-primary" style="margin-bottom: 0.5rem;">Xác Nhận Hoá Đơn</button>
-    </div>
-</form>
-{% endfor %}
+    {% endfor %}
 {% endblock %}
+

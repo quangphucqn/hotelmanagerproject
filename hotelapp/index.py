@@ -1,24 +1,39 @@
 import datetime
-from flask import render_template, request, redirect, url_for,jsonify
+
+from cloudinary.uploader import destroy
+from flask import render_template, request, redirect, url_for, jsonify
 from tabnanny import check
-from flask import render_template, request, redirect, url_for,session,jsonify,flash
+from flask import render_template, request, redirect, url_for, session, jsonify, flash
+from flask_admin.babel import domain
 from pyexpat.errors import messages
 
 from hotelapp import app, login
-from flask_login import login_user,logout_user,login_required
+from flask_login import login_user, logout_user, login_required
 import utils
 import cloudinary.uploader
 from hotelapp.models import User
+import hashlib
+import requests
+import json
+import os
+import random
+from payos import PaymentData, ItemData, PayOS
 
-#Trang chủ
+
+payOS = PayOS(client_id='a52ca026-fb4a-4686-a3f3-f627aab08028', api_key='af29b70b-ccb8-44f7-acee-32ad39d4c999',
+              checksum_key='95cdb3212b11fc888e83ba6d965ff5dfb3825af1c6f8a39d2141c479d236c49a')
+
+
+# Trang chủ
 @app.route('/')
 def home():
     rt = utils.load_room_type()
-    rooms=utils.room_list()
-    return render_template('index.html',roomtypes=rt,rooms=rooms)
+    rooms = utils.room_list()
+    return render_template('index.html', roomtypes=rt, rooms=rooms)
 
-#TÌM PHÒNG
-#định dang hiển thị tiền khi in ra giao diện
+
+# TÌM PHÒNG
+# định dang hiển thị tiền khi in ra giao diện
 @app.template_filter('format_money')
 def format_money(value):
     return "{:,.0f}".format(value)
@@ -37,6 +52,8 @@ def find_room():
     # Kiểm tra nếu người dùng đã nhập ngày
     if checkin_date and checkout_date:
         try:
+            utils.delete_old_booking_notes()
+            utils.delete_old_bookingnote_details()
             # Chuyển đổi chuỗi thành datetime
             checkindate = datetime.strptime(checkin_date, '%Y-%m-%d')
             checkoutdate = datetime.strptime(checkout_date, '%Y-%m-%d')
@@ -469,6 +486,76 @@ def payment():
     )
 
 #trang tìm phòng của nhân viên - giống tìm phòng khách hàng
+
+@app.route('/create_payment_link', methods=['POST'])
+def create_payment_link():
+    domain = "http://127.0.0.1:5000"
+    customer_name = request.form.get('c-n')
+    phone_number = request.form.get('p-n')
+    rental_note_id = request.form.get('rt-id')
+    total_cost_str = float((request.form.get('total_cost')))
+    total_cost = int(total_cost_str)
+    try:
+        paymentData = PaymentData(
+            orderCode=random.randint(1000, 99999),
+            amount=2000,
+            description="thanh toán hoá đơn",
+            cancelUrl=f"{domain}/payment/cancel",
+            returnUrl=f"{domain}/payment/success?rt-id={rental_note_id}",
+        )
+        payosCreatePayment = payOS.createPaymentLink(paymentData)
+
+        # # In ra đối tượng trả về để kiểm tra cấu trúc
+        # print("PayOS CreatePaymentLink Response:", payosCreatePayment)
+
+        # Kiểm tra nếu trả về có URL thanh toán
+        if hasattr(payosCreatePayment, 'paymentUrl'):
+            payment_link = payosCreatePayment.paymentUrl
+        elif hasattr(payosCreatePayment, 'url'):  # Thử với 'url' nếu không có 'paymentUrl'
+            payment_link = payosCreatePayment.url
+        elif hasattr(payosCreatePayment, 'checkoutUrl'):  # Thử với 'checkoutUrl'
+            payment_link = payosCreatePayment.checkoutUrl
+        else:
+            raise Exception("Không tìm thấy URL thanh toán trong phản hồi từ PayOS.")
+        # Chuyển hướng người dùng đến trang thanh toán của PayOS
+        return redirect(payment_link)
+    except Exception as e:
+        return jsonify(error=str(e)), 403
+
+
+@app.route('/payment/success', methods=['GET'])
+def payment_success():
+    message = None
+    rental_note_id = request.args.get('rt-id')
+    if rental_note_id:
+        result = utils.add_bill(rental_note_id)
+        if result:
+            message = "Thanh toán thành công và hóa đơn đã được lưu!"
+        else:
+            message = "Thanh toán thành công nhưng không thể lưu hóa đơn!"
+
+    return render_template('payment_success.html', message=message)
+
+
+@app.route('/payment/cancel', methods=['GET'])
+def payment_cancel():
+    return render_template('payment_cancel.html', message="Thanh toán bị huỷ. Quay lại trang thanh toán.")
+
+
+@app.route('/payment_offline', methods=['POST'])
+def payment_offline():
+    rental_note_id = request.form.get('id')
+    message = None
+    if request.method == 'POST':
+        if rental_note_id:
+            result = utils.add_bill(rental_note_id)
+            if result:
+                message = "Thanh toán trực tiếp thành công và hóa đơn đã được lưu!"
+            else:
+                message = "Thanh toán trực tiếp thất bại, không thể lưu hóa đơn!"
+        return render_template('payment.html', message=message)
+
+
 @app.route('/find_room_employee', methods=['GET', 'POST'])
 def find_room_employee():
     rt = utils.load_room_type()  # Tải danh sách loại phòng
@@ -485,6 +572,8 @@ def find_room_employee():
         if checkin_date and checkout_date:
             form_submitted = True
             try:
+                utils.delete_old_booking_notes()
+                utils.delete_old_bookingnote_details()
                 # Kiểm tra logic ngày
                 checkindate = datetime.strptime(checkin_date, '%Y-%m-%d')
                 checkoutdate = datetime.strptime(checkout_date, '%Y-%m-%d')

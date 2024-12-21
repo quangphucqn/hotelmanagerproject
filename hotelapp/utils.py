@@ -4,7 +4,7 @@ from hotelapp.models import User, Room, RoomType, RoomStatus, UserRole, National
     RentalNote
 from flask_login import current_user
 from flask import render_template, session, redirect, url_for, flash, request
-from datetime import datetime
+from datetime import datetime, timedelta
 import os, ezgmail,locale
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
@@ -232,8 +232,8 @@ def send_email(to_email, customer_name, cart, total_price, phone_number):
             subject=subject,
             html_content=content
         )
-
-        #chỗ này điền api key để gửi mail
+        # điền api key để gửi mail
+        
         response = sg.send(message)
         print(f"Email sent! Status Code: {response.status_code}")
     except Exception as e:
@@ -401,7 +401,9 @@ def find_booking_note(customer_name, phone_number):
         .filter(
             BookingNote.customer_name == customer_name,
             BookingNote.phone_number == phone_number,
-            BookingNote.rental_notes == None  # Loại bỏ các BookingNote đã có RentalNote
+            # BookingNote.created_date >= datetime.now() - timedelta(days=28),
+            BookingNote.rental_notes == None,  # Loại bỏ các BookingNote đã có RentalNote
+            BookingNote.rooms!=None
         )
         .options(
             joinedload(BookingNote.rooms)  # Load BookingNoteDetails liên kết
@@ -414,12 +416,59 @@ def find_booking_note(customer_name, phone_number):
         return results
 
 
+def delete_old_booking_notes():
+    from datetime import datetime, timedelta
+
+    # Lấy thời gian giới hạn 28 ngày trước
+    limit_date = datetime.now() - timedelta(days=30)
+
+    # Lấy tất cả các booking note có ngày tạo quá 28 ngày và chưa có RentalNote
+    old_booking_notes = db.session.query(BookingNote).filter(
+        BookingNote.created_date < limit_date,
+        BookingNote.rental_notes== None
+    ).all()
+
+    for booking_note in old_booking_notes:
+        # Xóa tất cả các BookingNoteDetails liên quan đến BookingNote này
+        for room_detail in booking_note.rooms[:]:
+            db.session.delete(room_detail)
+
+        # Xóa chính BookingNote
+        db.session.delete(booking_note)
+
+    # Thực hiện commit để lưu thay đổi vào cơ sở dữ liệu
+    db.session.commit()
+
+
+def delete_old_bookingnote_details():
+    # Lấy ngày hiện tại
+    current_date = datetime.now()
+    # Lấy tất cả các BookingNote cùng với các BookingNoteDetails và RentalNotes
+    booking_notes = BookingNote.query.options(joinedload(BookingNote.rooms), joinedload(BookingNote.rental_notes)).all()
+    # Duyệt qua từng BookingNote
+    for booking_note in booking_notes:
+        # Kiểm tra nếu BookingNote chưa có RentalNote
+        if not booking_note.rental_notes:
+            # Duyệt qua tất cả các BookingNoteDetails của BookingNote
+            for booking_note_detail in booking_note.rooms[:]:
+                # Kiểm tra nếu ngày checkin_date sớm hơn ngày hiện tại
+                if booking_note_detail.checkin_date < current_date:
+                    # Xóa BookingNoteDetail này
+                    db.session.delete(booking_note_detail)
+            # Kiểm tra nếu BookingNote không còn BookingNoteDetail nào
+            if not booking_note.rooms:
+                # Xóa BookingNote nếu không còn BookingNoteDetail nào
+                db.session.delete(booking_note)
+    # Commit các thay đổi vào cơ sở dữ liệu
+    db.session.commit()
+
 def create_rental_note(booking_note_id):
     id = (
         db.session.query(BookingNote)
         .filter(
             BookingNote.id == booking_note_id,
-            BookingNote.rental_notes == None
+            BookingNote.rental_notes == None,
+            BookingNote.created_date >= datetime.now() - timedelta(days=28)
         ).all()
     )
     if id:  # Nếu tìm thấy BookingNote
@@ -430,37 +479,19 @@ def create_rental_note(booking_note_id):
 
 
 def find_to_payment(customer_name, phone_number):
-    # bills = (
-    #     db.session.query(BookingNote)
-    #     .filter(
-    #         BookingNote.customer_name == customer_name,
-    #         BookingNote.phone_number == phone_number,
-    #         BookingNote.rental_notes != None,  # Loại bỏ các BookingNote chưa có RentalNote
-    #     )
-    #     .options(
-    #         joinedload(BookingNote.rooms)  # Load BookingNoteDetails liên kết
-    #         .joinedload(BookingNoteDetails.room)  # Load Room từ BookingNoteDetails
-    #         .joinedload(Room.room_type),  # Load RoomType từ Room
-    #         joinedload(BookingNote.national),  # Load National từ BookingNote
-    #         joinedload(BookingNote.rental_notes)  # Load RentalNote từ BookingNote
-    #     )
-    #     .all()
-    # )
     bills = (
         db.session.query(BookingNote)
-        .join(BookingNote.rental_notes)  # Kết nối với RentalNote
-        .outerjoin(RentalNote.bills)  # Liên kết với Bill để kiểm tra tồn tại Bill
+        .join(BookingNote.rental_notes)
         .filter(
             BookingNote.customer_name == customer_name,
             BookingNote.phone_number == phone_number,
-            BookingNote.rental_notes != None,  # Đảm bảo BookingNote đã có RentalNote
+            BookingNote.rental_notes != None,
             RentalNote.bills == None
         )
         .all()
     )
     if bills:
      return bills
-
 
 def add_bill(rental_note_id):
     rental_note = (
