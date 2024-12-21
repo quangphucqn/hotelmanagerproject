@@ -233,7 +233,7 @@ def send_email(to_email, customer_name, cart, total_price, phone_number):
             html_content=content
         )
         # điền api key để gửi mail
-        
+
         response = sg.send(message)
         print(f"Email sent! Status Code: {response.status_code}")
     except Exception as e:
