@@ -3,14 +3,14 @@
     <div class="container-fluid">
         <div class="row align-items-center">
             <!-- Logo Section -->
-            <div class="col-6 col-lg-4 site-logo" data-aos="fade">
-                <a href="#">Sogo Hotel</a>
+            <div class="col-12 col-sm-6 col-md-4  site-logo" data-aos="fade">
+                <a href="/" style="color: goldenrod;font-size: 30px">Pearl Natureystic Hotel</a>
             </div>
 
             <!-- Menu Section -->
             <div class="col-6 col-lg-8">
                 <!-- Menu Toggle for mobile -->
-                <div class="site-menu-toggle js-site-menu-toggle" data-aos="fade">
+                <div class="site-menu-toggle js-site-menu-toggle" data-aos="fade" >
                     <span></span>
                     <span></span>
                     <span></span>
@@ -21,11 +21,11 @@
                         <div class="container">
                             <div class="row full-height align-items-center">
                                 <div class="col-md-6 mx-auto">
-                                    <ul class="list-unstyled menu">
-                                        <li><a href="#">Home</a></li>
+                                    <ul class="list-unstyled menu" >
+                                        <li><a href="{{ url_for('home') }}">Home</a></li>
                                         <li class="active"><a href="{{ url_for('cart') }}">Đặt phòng</a></li>
                                         <li><a href="{{ url_for('about') }}">About</a></li>
-                                        <li><a href="#">Events</a></li>
+                                        <li><a href="{{ url_for('news') }}">News</a></li>
                                         {% if current_user.is_authenticated %}
                                         <li class="nav-item dropdown">
                                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -40,6 +40,7 @@
                                             <!-- Dropdown Menu -->
                                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                                 <li><a class="dropdown-item" href="/">Xem thông tin</a></li>
+                                                <li><a class="dropdown-item" href="{{ url_for('change_password') }}">Đổi mật khẩu</a></li>
                                                 <li><a class="dropdown-item text-danger" href="{{ url_for('user_logout') }}">Đăng xuất</a></li>
                                             </ul>
                                         </li>

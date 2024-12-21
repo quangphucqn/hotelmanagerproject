@@ -96,7 +96,7 @@ textarea.form-control {
     box-shadow: 0 5px 20px -5px rgba(0, 0, 0, 0.1); }
     .site-header.scrolled .site-menu-toggle {
       top: 10px;
-      position: relative; }
+      position: relative;}
       .site-header.scrolled .site-menu-toggle span {
         background: #000; }
     .site-header.scrolled .site-logo {
@@ -268,7 +268,8 @@ textarea.form-control {
     position: absolute;
     height: 2px;
     width: 100%;
-    background: #fff;
+    background: darkgoldenrod;
+    color: darkgoldenrod;
     border-radius: 9px;
     opacity: 1;
     left: 0;
@@ -1269,3 +1270,4 @@ textarea.form-control {
         background: #ffba5a;
         color: #fff;
         border-radius: 50%; }
+

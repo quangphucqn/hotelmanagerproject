@@ -303,6 +303,67 @@ def user_logout():
     logout_user()
     return redirect(url_for('user_login'))
 
+
+# Đổi mật khâu
+from flask import render_template, request, flash, redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import login_required, current_user
+from hotelapp import db
+from hotelapp.models import User
+import hashlib
+
+from flask import render_template, request, flash, redirect, url_for
+from werkzeug.security import generate_password_hash
+from flask_login import login_required, current_user
+from hotelapp import db
+from hotelapp.models import User
+import hashlib
+
+from flask import render_template, request, flash, redirect, url_for
+from werkzeug.security import generate_password_hash
+from flask_login import login_required, current_user
+from hotelapp import db
+from hotelapp.models import User
+import hashlib
+
+@app.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    err_msg = ""
+
+    if request.method == 'POST':
+        try:
+
+            current_password = request.form.get('current_password')
+            new_password = request.form.get('new_password')
+            confirm_password = request.form.get('confirm_password')
+
+            user = User.query.get(current_user.id)
+
+            current_password_hash = hashlib.md5(current_password.strip().encode('utf-8')).hexdigest()
+            if user.password != current_password_hash:
+                err_msg = 'Mật khẩu hiện tại không chính xác!'
+            elif new_password == current_password:
+                err_msg = 'Mật khẩu mới không được giống mật khẩu cũ!'
+            else:
+                # Ensure the new password and confirm password match
+                if new_password != confirm_password:
+                    err_msg = 'Mật khẩu mới và xác nhận mật khẩu không khớp!'
+                elif len(new_password) < 8:
+                    err_msg = 'Mật khẩu mới phải có ít nhất 8 ký tự!'
+                else:
+                    # Hash the new password and update the user's password
+                    hashed_new_password = hashlib.md5(new_password.strip().encode('utf-8')).hexdigest()
+                    user.password = hashed_new_password
+                    db.session.commit()
+                    return redirect(url_for('home'))
+
+        except Exception as ex:
+            err_msg = 'Hệ thống đang có lỗi: ' + str(ex)
+
+    return render_template('change_password.html', err_msg=err_msg)
+
+
 @app.context_processor
 def common_response():
     return {
@@ -358,6 +419,10 @@ def rental_note():
 @app.route('/about')
 def about():
     return render_template('about.html')
+
+@app.route('/news')
+def news():
+    return render_template('news.html')
 
 if __name__ == '__main__':
     from hotelapp.admin import*
