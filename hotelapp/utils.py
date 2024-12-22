@@ -5,7 +5,7 @@ from hotelapp.models import User, Room, RoomType, RoomStatus, UserRole, National
 from flask_login import current_user
 from flask import render_template, session, redirect, url_for, flash, request
 from datetime import datetime, timedelta
-import os, ezgmail,locale
+import os,locale
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from sqlalchemy import func
@@ -93,14 +93,6 @@ def get_rooms():
 
 
 # Phần phòng + loại phòng
-
-def get_quantity_RoomType(room_id):
-    query = db.session.query(RoomType.id, RoomType.room_type_name, Room.max_people) \
-        .join(Room, Room.room_type_id.__eq__(RoomType.id)).filter(Room.id.__eq__(room_id)).first()
-
-    soluong = query.max_people
-
-    return soluong
 
 
 # Đưa ra danh sách phòng

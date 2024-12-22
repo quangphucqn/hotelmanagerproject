@@ -4,11 +4,9 @@ from cloudinary.uploader import destroy
 from flask import render_template, request, redirect, url_for, jsonify
 from tabnanny import check
 from flask import render_template, request, redirect, url_for, session, jsonify, flash
-from flask_admin.babel import domain
 from pyexpat.errors import messages
-
 from hotelapp import app, login
-from flask_login import login_user, logout_user, login_required
+from flask_login import login_user, logout_user, login_required,current_user
 import utils
 import cloudinary.uploader
 from hotelapp.models import User
