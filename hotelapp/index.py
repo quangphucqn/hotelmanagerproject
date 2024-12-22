@@ -11,14 +11,14 @@ import utils
 import cloudinary.uploader
 from hotelapp.models import User
 import hashlib
-import requests
 import json
 import os
 import random
 from payos import PaymentData, ItemData, PayOS
 
 
-
+payOS = PayOS(client_id='a52ca026-fb4a-4686-a3f3-f627aab08028', api_key='af29b70b-ccb8-44f7-acee-32ad39d4c999',
+              checksum_key='95cdb3212b11fc888e83ba6d965ff5dfb3825af1c6f8a39d2141c479d236c49a')
 
 
 # Trang chủ
@@ -264,7 +264,6 @@ def user_register():
         password = request.form.get('password')
         email = request.form.get('email')
         birthday = request.form.get('birthday')
-        national_id = request.form.get('national_id')
         confirm = request.form.get('confirm')
         avatar = request.files.get('avatar')
 
@@ -328,22 +327,43 @@ def user_login():
 
     # Render lại trang đăng nhập với thông báo lỗi (nếu có)
     return render_template('login.html', err_msg=err_msg)
-#Đăng nhập admin
-@app.route('/admin_login', methods=['POST'])
-def login_admin():
-    username = request.form.get('username')
-    password = request.form.get('password')
+#Đổi mât khẩu
+@app.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    err_msg = ""
 
-    user = utils.check_login(username=username,
-                                 password=password,
-                                 role_name="ADMIN")
+    if request.method == 'POST':
+        try:
 
-    if user:
-            login_user(user=user)
-            return redirect('/admin')
-    else:
-            return redirect(url_for('login_admin'))
+            current_password = request.form.get('current_password')
+            new_password = request.form.get('new_password')
+            confirm_password = request.form.get('confirm_password')
 
+            user = User.query.get(current_user.id)
+
+            current_password_hash = hashlib.md5(current_password.strip().encode('utf-8')).hexdigest()
+            if user.password != current_password_hash:
+                err_msg = 'Mật khẩu hiện tại không chính xác!'
+            elif new_password == current_password:
+                err_msg = 'Mật khẩu mới không được giống mật khẩu cũ!'
+            else:
+                # Ensure the new password and confirm password match
+                if new_password != confirm_password:
+                    err_msg = 'Mật khẩu mới và xác nhận mật khẩu không khớp!'
+                elif len(new_password) < 8:
+                    err_msg = 'Mật khẩu mới phải có ít nhất 8 ký tự!'
+                else:
+                    # Hash the new password and update the user's password
+                    hashed_new_password = hashlib.md5(new_password.strip().encode('utf-8')).hexdigest()
+                    user.password = hashed_new_password
+                    db.session.commit()
+                    return redirect(url_for('home'))
+
+        except Exception as ex:
+            err_msg = 'Hệ thống đang có lỗi: ' + str(ex)
+
+    return render_template('change_password.html', err_msg=err_msg)
 #Đăng xuất
 @app.route('/user_logout')
 def user_logout():
@@ -372,6 +392,13 @@ def view_profile():
 def employee():
     return render_template('employee.html')
 
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+@app.route('/news')
+def news():
+    return render_template('news.html')
 
 #Lập phiếu thuê đã có phiếu đặt
 @app.route('/rental_note', methods=['GET', 'POST'])

@@ -6,6 +6,7 @@ import cloudinary
 
 app = Flask(__name__)
 #Cấu hình Flask
+
 app.secret_key='92376423rew4732455234234$#@$#^$%'
 app.config["SQLALCHEMY_DATABASE_URI"] = 'mysql+pymysql://root:%s@localhost/dbhotelapp?charset=utf8mb4' % quote('Nhat#1908')
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"]=True

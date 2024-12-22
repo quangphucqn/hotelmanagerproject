@@ -7,6 +7,7 @@
     <div class="col-md-7 col-xs-12">
         <table class="table">
             <tr>
+                <th>THÁNG</th>
                 <th>LOẠI PHÒNG</th>
                 <th>DOANH THU</th>
                 <th>SỐ LƯỢT THUÊ</th>
@@ -15,6 +16,7 @@
             {% if month_stats %}
                 {% for r in month_stats %}
                 <tr>
+                    <td>Tháng {{ r.month }}</td>
                     <td>{{ r.room_type_name }}</td>
                     <td>{{ '{:,.1f}'.format(r.total_revenue) }} VND</td>
                     <td>{{ r.total_bookings }}</td>
@@ -32,11 +34,18 @@
     <div class="col-md-5 col-xs-12">
         <form method="get">
             <div class="form-group">
-                <input type="date" class="form-control" name="from_date" required/>
+                <label for="year">Năm:</label>
+                <input type="number" class="form-control" name="year" id="year" min="2000" max="2100" required/>
             </div>
             <br>
             <div class="form-group">
-                <input type="date" class="form-control" name="to_date" required/>
+                <label for="room_type">Loại phòng:</label>
+                <select class="form-control" name="room_type_id" id="room_type">
+                    <option value="">-- Tất cả --</option>
+                    {% for rt in room_types %}
+                                    <option value="{{ rt.id }}" {% if rt.id == room_type_id %}selected{% endif %}>{{ rt.room_type_name }}</option>
+                    {% endfor %}
+                </select>
             </div>
             <input type="submit" value="Thống kê" class="btn btn-info">
         </form>
@@ -44,11 +53,14 @@
     </div>
 </div>
 
+
 <h1 class="text-center text-danger">THỐNG KÊ TẦN SUẤT SỬ DỤNG LOẠI PHÒNG</h1>
 <div class="row">
     <div class="col-md-7 col-xs-12">
+        <h4>Thống kê sử dụng loại phòng</h4>
         <table class="table">
             <tr>
+                <th>THÁNG</th>
                 <th>PHÒNG</th>
                 <th>SỐ NGÀY THUÊ</th>
                 <th>TỶ LỆ</th>
@@ -56,31 +68,22 @@
             {% if density_stats %}
                 {% for u in density_stats %}
                 <tr>
+                    <td>{{ u.month }}</td>
                     <td>{{ u.room_type_name }}</td>
                     <td>{{ u.total_days_rented }}</td>
                     <td>{{ u.usage_rate }}%</td>
                 </tr>
                 {% endfor %}
             {% else %}
-                <tr><td colspan="3">Không có dữ liệu để hiển thị</td></tr>
+                <tr><td colspan="4">Không có dữ liệu để hiển thị</td></tr>
             {% endif %}
         </table>
     </div>
+
     <div class="col-md-5 col-xs-12">
-        <form method="get">
-            <div class="form-group">
-                <input type="date" class="form-control" name="from_date" />
-            </div>
-            <br>
-            <div class="form-group">
-                <input type="date" class="form-control" name="to_date" />
-            </div>
-            <input type="submit" value="Thống kê" class="btn btn-info">
-        </form>
         <canvas id="densityChartId"></canvas>
     </div>
 </div>
-
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>

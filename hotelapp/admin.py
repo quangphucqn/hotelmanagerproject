@@ -107,6 +107,21 @@ class RoomView(AuthenticatedModelView):
         'room_status_id': 'Mã trạng thái phòng'
     }
 
+    # Tải ảnh mới và kiểm tra khi model thay đổi
+    def on_model_change(self, form, model, is_created):
+        try:
+            if is_created:
+                file_data = request.files.get('image')
+                if not file_data or file_data.filename == '':
+                    flash("Ảnh không được để trống khi tạo mới.", "error")
+                    raise ValueError("Ảnh không được để trống khi tạo mới.")
+            folder_path = os.path.join(app.root_path, 'static/images/rooms')
+            uploaded_url = upload_latest_image(folder_path)
+            if uploaded_url:
+                model.image = uploaded_url
+        except IntegrityError as e:
+            flash("Lỗi lưu dữ liệu: Ảnh không thể để trống.", "error")
+            print(f"IntegrityError: {e}")
     # Format giá phòng
     def format_price(view, context, model, name):
         # Kiểm tra nếu model.room_type_id tồn tại và truy xuất RoomType để lấy giá
@@ -126,12 +141,12 @@ class RoomView(AuthenticatedModelView):
 
     column_filters = [
         'room_address',
-        'room_status',
         RoomTypePriceFilter(RoomType.price, 'Giá phòng', filter_op='>'),
         RoomTypePriceFilter(RoomType.price, 'Giá phòng', filter_op='<'),
         RoomTypePriceFilter(RoomType.price, 'Giá phòng', filter_op='ASC'),
         RoomTypePriceFilter(RoomType.price, 'Giá phòng', filter_op='DESC'),
     ]
+
 
     form_extra_fields = {
         'image': FileUploadField(
@@ -195,7 +210,7 @@ class RegulationView(AuthenticatedModelView):
     column_searchable_list = ['country_name', 'coefficient']
     form_columns = ['country_name', 'coefficient']
 
-class EmployeeAccountView(ModelView):
+class EmployeeAccountView(AuthenticatedModelView):
     column_list = ['id', 'username', 'name', 'email', 'user_role']
     form_columns = ['username', 'name', 'email', 'password', 'birthday', 'user_role']
 
@@ -205,7 +220,7 @@ class EmployeeAccountView(ModelView):
         'name': 'Họ và tên',
         'email': 'Email',
         'birthday': 'Ngày sinh',
-        'user_role': 'Vai trò',
+        'user_role':'Vai Trò'
     }
 
     # Tự động điền thông tin cho form khi chỉnh sửa
@@ -245,25 +260,31 @@ class LogoutView(BaseView):
         logout_user()
         return redirect(url_for('user_login'))
 
-    def is_accessible(self):
-        return current_user.is_authenticated
 
 class StatsView(BaseView):
     @expose('/')
     def index(self):
-        from_date = request.args.get('from_date')
-        to_date = request.args.get('to_date')
-        month_stats, grand_cost = utils.monthly_revenue_report(from_date=from_date, to_date=to_date)
-        density_stats = utils.usage_density_report(from_date=from_date, to_date=to_date)
+        # Lấy các tham số từ URL (các tham số năm và loại phòng)
+        year = request.args.get('year', default=datetime.now().year, type=int)
+        room_type_id = request.args.get('room_type_id', default=None, type=int)
+        room_types = RoomType.query.all()
 
+        # Lấy thông tin doanh thu theo tháng
+        month_stats, grand_cost = utils.monthly_revenue_report(year=year, room_type_id=room_type_id)
+
+        # Lấy thông tin mật độ sử dụng phòng theo tháng
+        density_stats = utils.usage_density_report(year=year, room_type_id=room_type_id)
+
+
+
+        # Trả về template nếu không phải AJAX
         return self.render('admin/stats.html',
                            month_stats=month_stats,
                            grand_cost=grand_cost,
-                           density_stats=density_stats)
-
-    def is_accessible(self):
-        return current_user.is_authenticated and current_user.user_role.role_name == 'ADMIN'
-
+                           density_stats=density_stats,
+                           room_types=room_types,
+                           year=year,
+                           room_type_id=room_type_id)
 class MyAdminIndex(AdminIndexView):
     @expose('/')
     def index(self):
