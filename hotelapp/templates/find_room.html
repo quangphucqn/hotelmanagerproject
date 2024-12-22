@@ -5,7 +5,7 @@
 
 {% block content %}
     <!--Form search -->
-    <div class="hotel-search-form mt-2">
+    <div class="hotel-search-form mt-2 mb-2">
         <form action="{{ url_for('find_room') }}" method="get">
             {% if err_msg %}
                 <div class="alert alert-danger">
@@ -76,10 +76,6 @@
                     </div>
                 </div>
             {% endfor %}
-        </div>
-    {% else %}
-        <div class="alert alert-warning mt-3">
-            Không có phòng trống phù hợp với yêu cầu của bạn. Vui lòng thử lại.
         </div>
     {% endif %}
 

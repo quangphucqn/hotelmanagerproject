@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh Toán Bị Huỷ</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container" style="margin-top: 50px;">
+        <h1 class="text-danger">Thanh Toán Bị Huỷ</h1>
+        <div class="alert alert-warning">
+            {{ message }}
+        </div>
+        <a href="{{ url_for('payment') }}" class="btn btn-primary">Quay lại trang thanh toán</a>
+    </div>
+</body>
+</html>

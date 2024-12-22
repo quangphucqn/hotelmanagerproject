@@ -1,0 +1,86 @@
+body {
+    background-color: #f9f9fa;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    max-width: 1400px; /* Đảm bảo container rộng hơn */
+}
+
+.user-card-full {
+    width: 100%;
+    max-width: 960px; /* Chiếm khoảng 60-70% container */
+    margin: auto;
+}
+
+.card {
+    border-radius: 10px;
+    -webkit-box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.1);
+    border: none;
+    margin-bottom: 30px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: scale(1.02); /* Hiệu ứng hover */
+}
+
+.user-card-full .user-profile {
+    border-radius: 10px 0 0 10px;
+    background: linear-gradient(to right, #3498db, #2ecc71);
+    padding: 50px 0; /* Tăng padding */
+    text-align: center;
+}
+
+.user-profile img {
+    width: 100px; /* Tăng kích thước ảnh đại diện */
+    height: 100px;
+    object-fit: cover;
+    border: 1px solid #fff;
+    border-radius: 50%;
+    margin-bottom: 20px;
+}
+
+.card-block {
+    padding: 3rem 0.5rem; /* Tăng padding trong phần nội dung */
+}
+
+h6 {
+    font-size: 20px; /* Tăng kích thước font chữ */
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.text-muted {
+    font-size: 18px; /* Tăng font chữ cho thông tin phụ */
+    color: #6c757d !important;
+}
+
+.card .card-block p {
+    line-height: 30px;
+    font-size: 18px; /* Font chữ lớn hơn */
+}
+
+.b-b-default {
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.f-w-600 {
+    font-weight: 700;
+}
+
+.social-link li {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.social-link li a {
+    font-size: 28px; /* Tăng kích thước icon */
+    color: #555;
+    transition: color 0.3s ease-in-out;
+}
+
+.social-link li a:hover {
+    color: #3498db;
+}
