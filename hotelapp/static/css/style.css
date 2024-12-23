@@ -1,18 +1,81 @@
-nav.navbar>div.container-fluid>div.collapse>ul>li:hover{
-    background-color: #343a40;
+/* Navbar Styles */
+nav.navbar {
+    background-color:#593132 !important; /* Màu nền navbar */
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+nav.navbar .nav-link {
+    color: white !important; /* Màu chữ */
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+nav.navbar .nav-link:hover {
+    background-color: #13857a; /* Màu nền khi hover */
+    color: #fff; /* Màu chữ khi hover */
+    border-radius: 5px;
+}
+
+nav.navbar .dropdown-menu {
+    background-color: #088395; /* Nền dropdown */
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+nav.navbar .dropdown-menu .dropdown-item {
+    color: white;
+    font-weight: 500;
+}
+
+nav.navbar .dropdown-menu .dropdown-item:hover {
+    background-color: #13857a;
     color: white;
 }
-nav.navbar>div.container-fluid>div.collapse>ul>li>a:hover{
-    color: white;
+/* Đổi màu chữ cho tên khách sạn */
+.navbar-brand {
+    color: #d4af37 !important; /* Màu chữ mới */
+    font-weight: bold; /* Tùy chọn: làm đậm chữ */
+    text-decoration: none; /* Tùy chọn: loại bỏ gạch chân */
 }
-.btn-primary{
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
-    background-color: #1cc3b2;
-    color: white;
+
+.navbar-brand:hover {
+    color:#4c8c58 !important; /* Màu chữ khi hover */
 }
-.btn-primary:hover{
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Đổ bóng khi hover */
-    transform: scale(1.05); /* Tăng nhẹ kích thước */
+
+/* Avatar Styles */
+.navbar .nav-item img {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.navbar .nav-item img:hover {
+    transform: scale(1.1); /* Tăng nhẹ kích thước avatar */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Buttons */
+.navbar .btn-warning {
+    background-color: #ffa500; /* Màu cam */
+    color: white;
+    transition: all 0.3s ease-in-out;
+}
+
+.navbar .btn-warning:hover {
+    background-color: white;
+    color: #ffa500;
+    border: 2px solid #ffa500;
+}
+
+.navbar .btn-success {
+    background-color: #28a745; /* Màu xanh lá */
+    color: white;
+    transition: all 0.3s ease-in-out;
+}
+
+.navbar .btn-success:hover {
+    background-color: white;
+    color: #28a745;
+    border: 2px solid #28a745;
 }
 
 .site-footer {
@@ -43,18 +106,28 @@ nav.navbar>div.container-fluid>div.collapse>ul>li>a:hover{
     line-height: 1.5;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-    color: rgba(0, 0, 0, 0.5) !important;
+    color: #4c4f53 !important; /* Màu chữ phù hợp với nền footer */
     font-family: "Roboto", sans-serif;
     font-weight: 400;
     font-size: 14px;
     box-sizing: border-box;
-    background-color: #f8f9fa !important;
+    background-color: #DBD5E3 !important;
     padding: 70px 0;
 }
 
 .site-footer ul li a {
+    color: #593132; /* Màu chữ của liên kết */
     text-decoration: none;
 }
+
+.site-footer ul li a:hover {
+    color: #d4af37; /* Màu chữ khi hover */
+}
+
+.site-footer .navbar-brand {
+    color: #d4af37 !important; /* Màu chữ cho tên khách sạn */
+}
+
 .hotel-search-form{
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;

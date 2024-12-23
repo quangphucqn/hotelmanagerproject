@@ -211,8 +211,8 @@ class RegulationView(AuthenticatedModelView):
     form_columns = ['country_name', 'coefficient']
 
 class EmployeeAccountView(AuthenticatedModelView):
-    column_list = ['id', 'username', 'name', 'email', 'user_role']
-    form_columns = ['username', 'name', 'email', 'password', 'birthday', 'user_role']
+    column_list = ['id', 'username', 'name', 'email', 'user_role_id']
+    form_columns = ['username', 'name', 'email', 'password', 'birthday', 'user_role_id']
 
     column_labels = {
         'id': 'Mã nhân viên',
@@ -220,7 +220,7 @@ class EmployeeAccountView(AuthenticatedModelView):
         'name': 'Họ và tên',
         'email': 'Email',
         'birthday': 'Ngày sinh',
-        'user_role':'Vai Trò'
+        'user_role_id':'Vai Trò'
     }
 
     # Tự động điền thông tin cho form khi chỉnh sửa
@@ -242,7 +242,7 @@ class EmployeeAccountView(AuthenticatedModelView):
     column_searchable_list = ['username', 'email', 'name']
 
     # Thêm bộ lọc vào các cột
-    column_filters = ['username', 'email', 'user_role']
+    column_filters = ['username', 'email', 'user_role_id']
 
     # Khi cập nhật người dùng, nếu mật khẩu để trống thì giữ mật khẩu cũ
     def _after_model_change(self, form, model, is_created):
