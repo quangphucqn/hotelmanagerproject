@@ -1,6 +1,6 @@
 /* Navbar Styles */
 nav.navbar {
-    background-color:#593132 !important; /* Màu nền navbar */
+    background-color:#003b95 !important; /* Màu nền navbar */
     color: white;
     transition: background-color 0.3s ease;
 }
@@ -34,7 +34,7 @@ nav.navbar .dropdown-menu .dropdown-item:hover {
 }
 /* Đổi màu chữ cho tên khách sạn */
 .navbar-brand {
-    color: #d4af37 !important; /* Màu chữ mới */
+    color: #ffffff !important; /* Màu chữ mới */
     font-weight: bold; /* Tùy chọn: làm đậm chữ */
     text-decoration: none; /* Tùy chọn: loại bỏ gạch chân */
 }
@@ -111,7 +111,7 @@ nav.navbar .dropdown-menu .dropdown-item:hover {
     font-weight: 400;
     font-size: 14px;
     box-sizing: border-box;
-    background-color: #DBD5E3 !important;
+    background-color: #f5f5f5 !important;
     padding: 70px 0;
 }
 
@@ -197,6 +197,7 @@ body>div.container>div.room-show>div.card{
 }
 
 body>div.container>div.room-show>div.card>div.row>div.col-md-8>div.card-body>a.btn-primary {
+    margin-right: 1rem ;
     position: absolute;
     bottom: 10px; /* Cách đáy 10px */
     right: 10px; /* Cách phải 10px */

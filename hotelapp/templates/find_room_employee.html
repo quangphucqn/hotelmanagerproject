@@ -22,7 +22,7 @@
             </div>
             <div class="col-4 col-md-1">
                 <label for="room">Rooms</label>
-                <select name="room" id="room" class="form-select">
+                <select name="room" id="room" class="form-select" style="padding: 11px 6px 11px 6px;">
                     <option value="1" {% if num_rooms_requested == 1 %}selected{% endif %}>1</option>
                     <option value="2" {% if num_rooms_requested == 2 %}selected{% endif %}>2</option>
                     <option value="3" {% if num_rooms_requested == 3 %}selected{% endif %}>3</option>
@@ -30,7 +30,7 @@
                 </select>
             </div>
             <div class="col-12 col-md-3">
-                <button type="submit" class="form-control btn roberto-btn w-100">
+                <button type="submit" class="form-control btn roberto-btn w-100" style="margin-top: 3rem">
                     Check Availability
                 </button>
             </div>
@@ -45,7 +45,7 @@
                 <div class="row g-0">
                     <div class="col-md-4">
                         <div class="image-container">
-                            <img src="https://getwallpapers.com/wallpaper/full/e/0/7/1111915-widescreen-maldives-wallpaper-1920x1080-full-hd.jpg"
+                            <img src="{{ url_for('static', filename=room_type.image) }}"
                                  class="img-fluid rounded-start" alt="Room image">
                         </div>
                     </div>

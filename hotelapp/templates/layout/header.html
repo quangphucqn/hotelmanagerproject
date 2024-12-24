@@ -82,16 +82,10 @@
       <!-- Left Menu -->
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('cart') }}">Đặt phòng</a>
+          <a class="nav-link" href="{{ url_for('about') }}">Giới thiệu</a>
         </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Về chúng tôi
-          </a>
-          <ul class="dropdown-menu" aria-labelledby="aboutDropdown">
-            <li><a class="dropdown-item" href="{{ url_for('about')}}">Giới thiệu</a></li>
-            <li><a class="dropdown-item" href="{{ url_for('news')}}">Tin tức</a></li>
-          </ul>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('news') }}">Tin tức</a>
         </li>
       </ul>
 

@@ -108,6 +108,7 @@ def find_room(checkin_date, checkout_date, num_rooms_requested):
         RoomType.id,
         RoomType.room_type_name,
         RoomType.price,
+        RoomType.image,
         func.count(Room.id).label('available_count')
     ).join(
         Room, Room.room_type_id == RoomType.id
@@ -121,7 +122,7 @@ def find_room(checkin_date, checkout_date, num_rooms_requested):
 
     # Lọc các loại phòng có đủ số lượng phòng trống
     available_room_types = [
-        {'id': rt.id, 'name': rt.room_type_name, 'price': rt.price, 'available_count': rt.available_count}
+        {'id': rt.id, 'name': rt.room_type_name, 'price': rt.price,'image':rt.image, 'available_count': rt.available_count}
         for rt in room_counts if rt.available_count >= num_rooms_requested
     ]
 
@@ -216,8 +217,8 @@ def send_email(to_email, customer_name, cart, total_price, phone_number):
             subject=subject,
             html_content=content
         )
-        # điền api key để gửi mail
 
+        #chỗ này điền api key để gửi mail
         response = sg.send(message)
         print(f"Email sent! Status Code: {response.status_code}")
     except Exception as e:
