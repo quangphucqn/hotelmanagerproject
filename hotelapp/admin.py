@@ -7,7 +7,7 @@ from hotelapp import app, db
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import BaseView, expose, AdminIndexView
-from hotelapp.models import RoomStatus, RoomType, Room, UserRole,User, National
+from hotelapp.models import RoomType, Room, UserRole,User, National
 from flask_login import current_user, logout_user
 from flask import redirect, request, current_app,url_for,flash
 from flask_admin.form.upload import FileUploadField
@@ -94,17 +94,15 @@ class RoomTypePriceFilter(BaseSQLAFilter):
 
 
 class RoomView(AuthenticatedModelView):
-    column_list = ['room_address', 'room_type', 'price', 'room_status', 'max_people']
-    form_columns = ['room_address', 'max_people', 'image', 'room_type_id', 'room_status_id']
+    column_list = ['room_address', 'room_type', 'price', 'max_people']
+    form_columns = ['room_address', 'max_people', 'image', 'room_type_id']
     column_labels = {
         'room_address': 'Địa chỉ phòng',
         'room_type': 'Loại phòng',
         'price': 'Giá phòng',
-        'room_status': 'Trạng thái phòng',
         'max_people': 'Số người tối đa',
         'image': 'Ảnh phòng',
         'room_type_id': 'Mã loại phòng',
-        'room_status_id': 'Mã trạng thái phòng'
     }
 
     # Tải ảnh mới và kiểm tra khi model thay đổi
@@ -124,9 +122,8 @@ class RoomView(AuthenticatedModelView):
             print(f"IntegrityError: {e}")
     # Format giá phòng
     def format_price(view, context, model, name):
-        # Kiểm tra nếu model.room_type_id tồn tại và truy xuất RoomType để lấy giá
         if model.room_type_id:
-            room_type = RoomType.query.get(model.room_type_id)  # Truy vấn RoomType theo room_type_id
+            room_type = RoomType.query.get(model.room_type_id)
             if room_type:
                 return f"{room_type.price:,.1f} VND"
         return 'Lỗi'

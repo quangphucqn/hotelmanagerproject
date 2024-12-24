@@ -1,7 +1,6 @@
 from hotelapp import app, db
 from flask import current_app
-from hotelapp.models import User, Room, RoomType, RoomStatus, UserRole, National, BookingNote, BookingNoteDetails, Bill, \
-    RentalNote
+from hotelapp.models import User, Room, RoomType,UserRole, National, BookingNote, BookingNoteDetails, Bill,  RentalNote
 from flask_login import current_user
 from flask import render_template, session, redirect, url_for, flash, request
 from datetime import datetime, timedelta
@@ -85,10 +84,8 @@ def get_rooms():
     return (db.session.query(
         Room.id,
         RoomType.room_type_name,
-        RoomStatus.status_name,
         RoomType.price
     ).join(RoomType, Room.room_type_id == RoomType.id) \
-            .join(RoomStatus, Room.room_status_id == RoomStatus.id) \
             .join(National, BookingNote.national_id == National.id).all())
 
 
@@ -97,11 +94,8 @@ def get_rooms():
 
 # Đưa ra danh sách phòng
 def room_list():
-    # Join bảng room với room_type và room_status
-    rooms = db.session.query(Room, RoomType, RoomStatus).join(
+    rooms = db.session.query(Room, RoomType).join(
         RoomType, Room.room_type_id == RoomType.id
-    ).join(
-        RoomStatus, Room.room_status_id == RoomStatus.id
     ).all()
     return rooms
 
@@ -117,8 +111,6 @@ def find_room(checkin_date, checkout_date, num_rooms_requested):
         func.count(Room.id).label('available_count')
     ).join(
         Room, Room.room_type_id == RoomType.id
-    ).join(
-        RoomStatus, Room.room_status_id == RoomStatus.id
     ).filter(
         ~db.session.query(BookingNoteDetails).filter(
             BookingNoteDetails.room_id == Room.id,

@@ -41,7 +41,6 @@ def find_room():
     checkin_date = request.args.get('checkin-date')  # Ngày nhận từ form
     checkout_date = request.args.get('checkout-date')  # Ngày trả từ form
     num_rooms_requested = int(request.args.get('room', 1))  # Số phòng yêu cầu (mặc định là 1)
-    adults= int(request.args.get('adults',1)) #Số khách, mặc định là 1
     # Khởi tạo các biến cần thiết
     rt = utils.load_room_type()  # Tải danh sách loại phòng
     available_room_types = [] #loại phòng trống đủ điều kiện
@@ -85,7 +84,6 @@ def find_room():
         checkin_date=checkin_date,
         checkout_date=checkout_date,
         num_rooms_requested=num_rooms_requested,
-        adults=adults
     )
 
 

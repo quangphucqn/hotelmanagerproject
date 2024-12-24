@@ -111,7 +111,7 @@
           </a>
           <!-- Dropdown Menu -->
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-            <li><a class="dropdown-item" href="/">Xem thông tin</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('view_profile') }}">Xem thông tin</a></li>
             <li><a class="dropdown-item text-danger" href="{{ url_for('user_logout') }}">Đăng xuất</a></li>
           </ul>
         </li>

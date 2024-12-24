@@ -22,21 +22,12 @@
                     <input type="date" class="form-control" id="checkOut" name="checkout-date" value="{{ checkout_date }}" required>
                 </div>
                 <div class="col-4 col-md-1">
-                    <label for="room">Room</label>
+                    <label for="room">Rooms</label>
                     <select name="room" id="room" class="form-select">
                         <option value="1" {% if num_rooms_requested == 1 %}selected{% endif %}>1</option>
                         <option value="2" {% if num_rooms_requested == 2 %}selected{% endif %}>2</option>
                         <option value="3" {% if num_rooms_requested == 3 %}selected{% endif %}>3</option>
                         <option value="4" {% if num_rooms_requested == 4 %}selected{% endif %}>4</option>
-                    </select>
-                </div>
-                <div class="col-4 col-md-1">
-                    <label for="adults">Adult</label>
-                    <select name="adults" id="adults" class="form-select" >
-                        <option value="1" {% if adults == 1 %}selected{% endif %}>1</option>
-                        <option value="2" {% if adults == 2 %}selected{% endif %}>2</option>
-                        <option value="3" {% if adults == 3 %}selected{% endif %}>3</option>
-                        <option value="4" {% if adults == 4 %}selected{% endif %}>4</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-3">

@@ -49,7 +49,6 @@ class Room(db.Model):
     max_people = Column(Integer, nullable=False)
     image = Column(String(100))
     room_type_id = Column(Integer, ForeignKey('room_type.id'), nullable=False)
-    room_status_id = Column(Integer, ForeignKey('room_status.id'), nullable=False)
     booking_notes = relationship('BookingNoteDetails', backref='room')
 
     def __str__(self):
@@ -70,11 +69,11 @@ class RentalNote(db.Model):
 class BookingNoteDetails(db.Model):
     __tablename__ = 'booking_note_details'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    checkin_date = Column(DateTime,primary_key=True, nullable=False)
+    checkin_date = Column(DateTime, nullable=False)
     checkout_date = Column(DateTime, nullable=False)
     number_people = Column(Integer, nullable=False)
     booking_note_id = Column(Integer, ForeignKey('booking_note.id'), nullable=False)
-    room_id = Column(Integer, ForeignKey('room.id'), nullable=False,primary_key=True)
+    room_id = Column(Integer, ForeignKey('room.id'), nullable=False)
 
     __table_args__ = (
         UniqueConstraint('checkin_date', 'room_id', name='_checkin_room_uc'),
@@ -108,16 +107,6 @@ class RoomType(db.Model):
     image=Column(String(100), nullable=False)
     def __str__(self):
         return self.room_type_name
-
-class RoomStatus(db.Model):
-    __tablename__ = 'room_status'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    status_name = Column(String(50), nullable=False)
-    rooms = relationship('Room', backref='room_status', lazy=True)
-
-    def __str__(self):
-        return self.status_name
-
 
 class Bill(db.Model):
     __tablename__ = 'bill'
@@ -179,40 +168,33 @@ if __name__ == '__main__':
         db.session.add(rot8)
         db.session.add(rot9)
 
-        ros1 = RoomStatus(status_name='trống')
-        ros2 = RoomStatus(status_name='đang thuê')
-        ros3 = RoomStatus(status_name='đang đặt')
-        db.session.add(ros1)
-        db.session.add(ros2)
-        db.session.add(ros3)
-
-        r1 = Room(room_address='101', max_people=3, image='img1.jpg', room_type_id=1, room_status_id=1)
-        r2 = Room(room_address='102', max_people=3, image='img1.jpg', room_type_id=1, room_status_id=1)
-        r3 = Room(room_address='103', max_people=3, image='img1.jpg', room_type_id=1, room_status_id=1)
-        r4 = Room(room_address='201', max_people=3, image='img1.jpg', room_type_id=2, room_status_id=1)
-        r5 = Room(room_address='202', max_people=3, image='img1.jpg', room_type_id=2, room_status_id=1)
-        r6 = Room(room_address='203', max_people=3, image='img1.jpg', room_type_id=2, room_status_id=1)
-        r7 = Room(room_address='301', max_people=2, image='img1.jpg', room_type_id=3, room_status_id=1)
-        r8 = Room(room_address='302', max_people=3, image='img1.jpg', room_type_id=3, room_status_id=1)
-        r9 = Room(room_address='303', max_people=3, image='img1.jpg', room_type_id=3, room_status_id=1)
-        r10 = Room(room_address='401', max_people=3, image='img1.jpg', room_type_id=4, room_status_id=1)
-        r11 = Room(room_address='402', max_people=3, image='img1.jpg', room_type_id=4, room_status_id=1)
-        r12 = Room(room_address='403', max_people=3, image='img1.jpg', room_type_id=4, room_status_id=1)
-        r13 = Room(room_address='501', max_people=2, image='img1.jpg', room_type_id=5, room_status_id=1)
-        r14 = Room(room_address='502', max_people=2, image='img1.jpg', room_type_id=5, room_status_id=1)
-        r15 = Room(room_address='503', max_people=2, image='img1.jpg', room_type_id=5, room_status_id=1)
-        r16 = Room(room_address='601', max_people=2, image='img1.jpg', room_type_id=6, room_status_id=1)
-        r17 = Room(room_address='602', max_people=2, image='img1.jpg', room_type_id=6, room_status_id=1)
-        r18 = Room(room_address='603', max_people=2, image='img1.jpg', room_type_id=6, room_status_id=1)
-        r19 = Room(room_address='701', max_people=3, image='img1.jpg', room_type_id=7, room_status_id=1)
-        r20 = Room(room_address='702', max_people=3, image='img1.jpg', room_type_id=7, room_status_id=1)
-        r21 = Room(room_address='703', max_people=3, image='img1.jpg', room_type_id=7, room_status_id=1)
-        r22 = Room(room_address='801', max_people=2, image='img1.jpg', room_type_id=8, room_status_id=1)
-        r23 = Room(room_address='802', max_people=2, image='img1.jpg', room_type_id=8, room_status_id=1)
-        r24 = Room(room_address='803', max_people=2, image='img1.jpg', room_type_id=8, room_status_id=1)
-        r25 = Room(room_address='901', max_people=2, image='img1.jpg', room_type_id=9, room_status_id=1)
-        r26 = Room(room_address='902', max_people=2, image='img1.jpg', room_type_id=9, room_status_id=1)
-        r27 = Room(room_address='903', max_people=2, image='img1.jpg', room_type_id=9, room_status_id=1)
+        r1 = Room(room_address='101', max_people=3, image='img1.jpg', room_type_id=1)
+        r2 = Room(room_address='102', max_people=3, image='img1.jpg', room_type_id=1)
+        r3 = Room(room_address='103', max_people=3, image='img1.jpg', room_type_id=1)
+        r4 = Room(room_address='201', max_people=3, image='img1.jpg', room_type_id=2)
+        r5 = Room(room_address='202', max_people=3, image='img1.jpg', room_type_id=2)
+        r6 = Room(room_address='203', max_people=3, image='img1.jpg', room_type_id=2)
+        r7 = Room(room_address='301', max_people=2, image='img1.jpg', room_type_id=3)
+        r8 = Room(room_address='302', max_people=3, image='img1.jpg', room_type_id=3)
+        r9 = Room(room_address='303', max_people=3, image='img1.jpg', room_type_id=3)
+        r10 = Room(room_address='401', max_people=3, image='img1.jpg', room_type_id=4)
+        r11 = Room(room_address='402', max_people=3, image='img1.jpg', room_type_id=4)
+        r12 = Room(room_address='403', max_people=3, image='img1.jpg', room_type_id=4)
+        r13 = Room(room_address='501', max_people=2, image='img1.jpg', room_type_id=5)
+        r14 = Room(room_address='502', max_people=2, image='img1.jpg', room_type_id=5)
+        r15 = Room(room_address='503', max_people=2, image='img1.jpg', room_type_id=5)
+        r16 = Room(room_address='601', max_people=2, image='img1.jpg', room_type_id=6)
+        r17 = Room(room_address='602', max_people=2, image='img1.jpg', room_type_id=6)
+        r18 = Room(room_address='603', max_people=2, image='img1.jpg', room_type_id=6)
+        r19 = Room(room_address='701', max_people=3, image='img1.jpg', room_type_id=7)
+        r20 = Room(room_address='702', max_people=3, image='img1.jpg', room_type_id=7)
+        r21 = Room(room_address='703', max_people=3, image='img1.jpg', room_type_id=7)
+        r22 = Room(room_address='801', max_people=2, image='img1.jpg', room_type_id=8)
+        r23 = Room(room_address='802', max_people=2, image='img1.jpg', room_type_id=8)
+        r24 = Room(room_address='803', max_people=2, image='img1.jpg', room_type_id=8)
+        r25 = Room(room_address='901', max_people=2, image='img1.jpg', room_type_id=9)
+        r26 = Room(room_address='902', max_people=2, image='img1.jpg', room_type_id=9)
+        r27 = Room(room_address='903', max_people=2, image='img1.jpg', room_type_id=9)
         db.session.add(r1)
         db.session.add(r2)
         db.session.add(r3)
