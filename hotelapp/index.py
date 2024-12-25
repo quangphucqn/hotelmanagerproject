@@ -7,7 +7,6 @@ from flask import render_template, request, redirect, url_for, session, jsonify,
 from pyexpat.errors import messages
 from hotelapp import app, login
 from flask_login import login_user, logout_user, login_required,current_user
-from flask_babel import gettext,get_babel
 import utils
 import cloudinary.uploader
 from hotelapp.models import User
@@ -190,7 +189,7 @@ def confirm_booking():
             print(f"Lỗi khi xác nhận đặt phòng: {e}")
             flash('Đã xảy ra lỗi trong quá trình đặt phòng. Vui lòng thử lại.', 'error')
 
-        return render_template('confirm_booking.html', cart=cart)
+        return render_template('confirm_booking.html', error_message="Đã xảy ra lỗi!")
 
 
 #cập nhật lại số khách ở và tính tạm tiền phòng
@@ -367,7 +366,7 @@ def change_password():
 #Đăng xuất
 @app.route('/user_logout')
 def user_logout():
-    logout_user()
+    session.clear()
     return redirect(url_for('user_login'))
 
 @app.context_processor

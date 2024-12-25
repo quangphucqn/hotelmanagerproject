@@ -309,12 +309,7 @@ def monthly_revenue_report(year=None, room_type_id=None):
     return result_with_total_cost, grand_cost
 
 def usage_density_report(year=None, room_type_id=None):
-    """
-    Thống kê mật độ sử dụng phòng theo tháng có doanh thu, lọc theo năm và loại phòng.
-    :param year: Năm cần thống kê (mặc định là None).
-    :param room_type_id: ID loại phòng cần lọc (mặc định là None, nghĩa là tất cả các loại phòng).
-    :return: Danh sách mật độ sử dụng phòng theo tháng.
-    """
+
     # Lọc theo năm (mặc định là năm hiện tại nếu không truyền)
     if not year:
         year = datetime.now().year
@@ -376,11 +371,6 @@ def usage_density_report(year=None, room_type_id=None):
     return result_with_usage_rate
 
 
-
-if __name__ == '__main__':
-    with app.app_context():
-        print(monthly_revenue_report())
-        print(usage_density_report())
 
 
 def create_booking_note(customer_name, phone_number, cccd, email, national_id, user_id):
@@ -557,3 +547,9 @@ def add_bill(rental_note_id):
         db.session.add(bill)
         db.session.commit()
         return bill
+
+if __name__ == '__main__':
+    with app.app_context():
+        print(monthly_revenue_report())
+        print(usage_density_report())
+        print(add_bill(5))

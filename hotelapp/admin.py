@@ -8,7 +8,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import BaseView, expose, AdminIndexView
 from hotelapp.models import RoomType, Room, UserRole,User, National
-from flask_login import current_user, logout_user
+from flask_login import current_user, logout_user,login_required
 from flask import redirect, request, current_app,url_for,flash
 from flask_admin.form.upload import FileUploadField
 from sqlalchemy.exc import IntegrityError
@@ -259,6 +259,7 @@ class LogoutView(BaseView):
 
 
 class StatsView(BaseView):
+    @login_required
     @expose('/')
     def index(self):
         # Lấy các tham số từ URL (các tham số năm và loại phòng)

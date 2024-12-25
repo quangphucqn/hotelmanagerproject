@@ -5,13 +5,30 @@
 
 {% block content %}
 <div class="container mt-5">
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <div class="alert alert-success">
-            {{ messages[0] }}
-        </div>
-    {% endif %}
-    {% endwith %}
+{% if get_flashed_messages(with_categories=true) %}
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+        {% if category == 'success' %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% elif category == 'error' %}
+            <div class="alert alert-danger">
+                {{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
     <a href="/" class="btn btn-success mt-3 mb-3">Về trang chủ</a>
 </div>
+<style>
+.alert-success {
+    background-color: #28a745; /* Màu xanh */
+    color: white;
+}
+
+.alert-error {
+    background-color: #dc3545; /* Màu đỏ */
+    color: white;
+}
+</style>
 {% endblock %}
