@@ -18,9 +18,7 @@ from flask_admin.contrib.sqla.filters import BaseSQLAFilter
 import cloudinary
 from cloudinary.uploader import upload
 from markupsafe import Markup
-
 import utils, os
-
 
 class AuthenticatedModelView(ModelView):
     def is_accessible(self):

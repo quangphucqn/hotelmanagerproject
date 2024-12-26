@@ -219,6 +219,7 @@ def send_email(to_email, customer_name, cart, total_price, phone_number):
         )
 
         #chỗ này điền api key để gửi mail
+        
         response = sg.send(message)
         print(f"Email sent! Status Code: {response.status_code}")
     except Exception as e:
@@ -413,7 +414,7 @@ def find_booking_note(customer_name, phone_number):
         .filter(
             BookingNote.customer_name == customer_name,
             BookingNote.phone_number == phone_number,
-            # BookingNote.created_date >= datetime.now() - timedelta(days=28),
+            BookingNote.created_date >= datetime.now() - timedelta(days=28),
             BookingNote.rental_notes == None,  # Loại bỏ các BookingNote đã có RentalNote
             BookingNote.rooms!=None
         )

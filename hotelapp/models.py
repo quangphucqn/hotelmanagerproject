@@ -48,7 +48,7 @@ class Room(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     room_address = Column(String(50), nullable=False)
     max_people = Column(Integer, nullable=False)
-    image = Column(String(100))
+    image = Column(String(100), nullable=False)
     room_type_id = Column(Integer, ForeignKey('room_type.id'), nullable=False)
     booking_notes = relationship('BookingNoteDetails', backref='room')
 

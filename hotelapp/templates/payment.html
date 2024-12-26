@@ -162,11 +162,29 @@
                 <div class="col-sm-6">
                     <form method="post" action="{{ url_for('payment_offline') }}">
                         <input name="id" type="hidden" value="{{ bill.rental_notes.id }}">
-                        <button type="submit" class="btn btn-danger" style="width: 100%;">Thanh Toán Trực Tiếp</button>
+                        <button type="submit" class="btn btn-danger" style="width: 100%;" id="directPaymentButton-{{ bill.rental_notes.id }}">Thanh Toán Trực Tiếp</button>
                     </form>
                 </div>
             </div>
         </div>
     {% endfor %}
+
+
+    <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="confirmationModalLabel">Xác nhận lưu hoá đơn?</h4>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" id="confirmAction">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 

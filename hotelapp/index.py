@@ -13,6 +13,7 @@ from hotelapp.models import User
 import hashlib
 import json
 import os
+from flask_babel import Babel
 from hotelapp.admin import *
 import random
 from payos import PaymentData, ItemData, PayOS
@@ -25,9 +26,7 @@ payOS = PayOS(client_id='a52ca026-fb4a-4686-a3f3-f627aab08028', api_key='af29b70
 # Trang chủ
 @app.route('/')
 def home():
-    rt = utils.load_room_type()
-    rooms = utils.room_list()
-    return render_template('index.html', roomtypes=rt, rooms=rooms)
+    return render_template('index.html')
 
 
 # TÌM PHÒNG
@@ -42,6 +41,7 @@ def find_room():
     checkin_date = request.args.get('checkin-date')  # Ngày nhận từ form
     checkout_date = request.args.get('checkout-date')  # Ngày trả từ form
     num_rooms_requested = int(request.args.get('room', 1))  # Số phòng yêu cầu (mặc định là 1)
+    adults= int(request.args.get('adults',1)) #Số khách, mặc định là 1
     # Khởi tạo các biến cần thiết
     rt = utils.load_room_type()  # Tải danh sách loại phòng
     available_room_types = [] #loại phòng trống đủ điều kiện
@@ -85,6 +85,7 @@ def find_room():
         checkin_date=checkin_date,
         checkout_date=checkout_date,
         num_rooms_requested=num_rooms_requested,
+        adults=adults
     )
 
 
