@@ -1,4 +1,5 @@
 import csv
+import hashlib
 from datetime import datetime
 from idlelib.autocomplete_w import HIDE_VIRTUAL_EVENT_NAME
 from io import StringIO
@@ -6,18 +7,18 @@ from hotelapp import app, db
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import BaseView, expose, AdminIndexView
-from hotelapp.models import RoomStatus, RoomType, Room, UserRole, National
-from flask_login import current_user, logout_user
+from hotelapp.models import RoomType, Room, UserRole,User, National
+from flask_login import current_user, logout_user,login_required
 from flask import redirect, request, current_app,url_for,flash
 from flask_admin.form.upload import FileUploadField
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash
+from flask_admin.contrib.sqla.filters import BaseSQLAFilter
 import cloudinary
 from cloudinary.uploader import upload
 from markupsafe import Markup
-
 import utils, os
-
 
 class AuthenticatedModelView(ModelView):
     def is_accessible(self):
@@ -53,18 +54,53 @@ def format_image(image_url, alt_text="Image", width=100):
     return "Không có ảnh"
 
 
+class RoomTypePriceFilter(BaseSQLAFilter):
+    def __init__(self, column, label, filter_op='='):
+        super().__init__(column, label)
+        self.operations = {
+            ">": "lớn hơn",
+            "<": "nhỏ hơn",
+            ">=": "lớn hơn hoặc bằng",
+            "<=": "nhỏ hơn hoặc bằng",
+            "ASC": "tăng dần",
+            "DESC": "giảm dần",
+        }
+        self.filter_op = filter_op
+
+    def apply(self, query, value, alias=None):
+        # Apply filter operation first
+        if self.filter_op == ">":
+            query = query.filter(RoomType.price > value)
+        elif self.filter_op == "<":
+            query = query.filter(RoomType.price < value)
+        elif self.filter_op == ">=":
+            query = query.filter(RoomType.price >= value)
+        elif self.filter_op == "<=":
+            query = query.filter(RoomType.price <= value)
+
+        # Then, apply sorting operation if present
+        if self.filter_op == "ASC":
+            query = query.order_by(RoomType.price.asc())
+        elif self.filter_op == "DESC":
+            query = query.order_by(RoomType.price.desc())
+
+        return query
+
+    def operation(self):
+        # Return the operation name for UI
+        return self.operations.get(self.filter_op, 'Lỗi')
+
+
 class RoomView(AuthenticatedModelView):
-    column_list = ['room_address', 'room_type', 'price', 'room_status', 'max_people']
-    form_columns = ['room_address', 'max_people', 'image', 'room_type_id', 'room_status_id']
+    column_list = ['room_address', 'room_type', 'price', 'max_people']
+    form_columns = ['room_address', 'max_people', 'image', 'room_type_id']
     column_labels = {
         'room_address': 'Địa chỉ phòng',
         'room_type': 'Loại phòng',
         'price': 'Giá phòng',
-        'room_status': 'Trạng thái phòng',
         'max_people': 'Số người tối đa',
         'image': 'Ảnh phòng',
         'room_type_id': 'Mã loại phòng',
-        'room_status_id': 'Mã trạng thái phòng'
     }
 
     # Tải ảnh mới và kiểm tra khi model thay đổi
@@ -80,15 +116,32 @@ class RoomView(AuthenticatedModelView):
             if uploaded_url:
                 model.image = uploaded_url
         except IntegrityError as e:
-                flash("Lỗi lưu dữ liệu: Ảnh không thể để trống.", "error")
-                print(f"IntegrityError: {e}")
+            flash("Lỗi lưu dữ liệu: Ảnh không thể để trống.", "error")
+            print(f"IntegrityError: {e}")
+    # Format giá phòng
     def format_price(view, context, model, name):
-        return f"{model.room_type.price:,.1f} VND" if model.room_type else 'Lỗi'
+        if model.room_type_id:
+            room_type = RoomType.query.get(model.room_type_id)
+            if room_type:
+                return f"{room_type.price:,.1f} VND"
+        return 'Lỗi'
+
     # Format ảnh để hiển thị
     column_formatters = {
-        'price':format_price,
-        'image':format_image
+        'price': format_price,
+        'image': format_image
     }
+
+    column_searchable_list = ['room_address']
+
+    column_filters = [
+        'room_address',
+        RoomTypePriceFilter(RoomType.price, 'Giá phòng', filter_op='>'),
+        RoomTypePriceFilter(RoomType.price, 'Giá phòng', filter_op='<'),
+        RoomTypePriceFilter(RoomType.price, 'Giá phòng', filter_op='ASC'),
+        RoomTypePriceFilter(RoomType.price, 'Giá phòng', filter_op='DESC'),
+    ]
+
 
     form_extra_fields = {
         'image': FileUploadField(
@@ -132,7 +185,8 @@ class RoomTypeView(AuthenticatedModelView):
         'price': format_price,
         'image': format_image
     }
-
+    column_searchable_list = ['room_type_name','surcharge']
+    column_filters = ['room_type_name','price']
     form_extra_fields = {
         'image': FileUploadField(
             'Ảnh loại phòng',
@@ -148,7 +202,52 @@ class RegulationView(AuthenticatedModelView):
         'country_name': 'Tên quốc gia',
         'coefficient': 'Hệ số giá'
     }
+    column_searchable_list = ['country_name', 'coefficient']
     form_columns = ['country_name', 'coefficient']
+
+class EmployeeAccountView(AuthenticatedModelView):
+    column_list = ['id', 'username', 'name', 'email', 'user_role_id']
+    form_columns = ['username', 'name', 'email', 'password', 'birthday', 'user_role_id']
+
+    column_labels = {
+        'id': 'Mã nhân viên',
+        'username': 'Tên đăng nhập',
+        'name': 'Họ và tên',
+        'email': 'Email',
+        'birthday': 'Ngày sinh',
+        'user_role_id':'Vai Trò'
+    }
+
+    # Tự động điền thông tin cho form khi chỉnh sửa
+    def _on_form_prefill(self, form, id):
+        user = User.query.get(id)
+        if user:
+            form.user_role_id.data = user.user_role_id
+            form.password.data = ""
+
+    def on_model_change(self, form, model, is_created):
+        if model.password:
+            # Băm mật khẩu bằng MD5 trước khi lưu
+            model.password = hashlib.md5(model.password.strip().encode('utf-8')).hexdigest()
+
+    def on_model_delete(self, model):
+        flash(f"Đã xóa tài khoản nhân viên: {model.username}", "success")
+
+    # Tìm kiếm theo các trường
+    column_searchable_list = ['username', 'email', 'name']
+
+    # Thêm bộ lọc vào các cột
+    column_filters = ['username', 'email', 'user_role_id']
+
+    # Khi cập nhật người dùng, nếu mật khẩu để trống thì giữ mật khẩu cũ
+    def _after_model_change(self, form, model, is_created):
+        if not is_created:
+            if not form.password.data:
+                # Giữ mật khẩu cũ nếu không thay đổi mật khẩu
+                pass
+            else:
+                # Nếu có mật khẩu mới, băm mật khẩu mới và cập nhật
+                model.password = hashlib.md5(form.password.data.strip().encode('utf-8')).hexdigest()
 
 class LogoutView(BaseView):
     @expose('/')
@@ -156,25 +255,32 @@ class LogoutView(BaseView):
         logout_user()
         return redirect(url_for('user_login'))
 
-    def is_accessible(self):
-        return current_user.is_authenticated
 
 class StatsView(BaseView):
+    @login_required
     @expose('/')
     def index(self):
-        from_date = request.args.get('from_date')
-        to_date = request.args.get('to_date')
-        month_stats, grand_cost = utils.monthly_revenue_report(from_date=from_date, to_date=to_date)
-        density_stats = utils.usage_density_report(from_date=from_date, to_date=to_date)
+        # Lấy các tham số từ URL (các tham số năm và loại phòng)
+        year = request.args.get('year', default=datetime.now().year, type=int)
+        room_type_id = request.args.get('room_type_id', default=None, type=int)
+        room_types = RoomType.query.all()
 
+        # Lấy thông tin doanh thu theo tháng
+        month_stats, grand_cost = utils.monthly_revenue_report(year=year, room_type_id=room_type_id)
+
+        # Lấy thông tin mật độ sử dụng phòng theo tháng
+        density_stats = utils.usage_density_report(year=year, room_type_id=room_type_id)
+
+
+
+        # Trả về template nếu không phải AJAX
         return self.render('admin/stats.html',
                            month_stats=month_stats,
                            grand_cost=grand_cost,
-                           density_stats=density_stats)
-
-    def is_accessible(self):
-        return current_user.is_authenticated and current_user.user_role.role_name == 'ADMIN'
-
+                           density_stats=density_stats,
+                           room_types=room_types,
+                           year=year,
+                           room_type_id=room_type_id)
 class MyAdminIndex(AdminIndexView):
     @expose('/')
     def index(self):
@@ -184,7 +290,8 @@ admin = Admin(app, name="Hotel Administration", template_mode='bootstrap4')
 admin.add_view(RoomView(Room, db.session, name="Quản lý phòng"))
 admin.add_view(RoomTypeView(RoomType, db.session, name="Quản lý loại phòng"))
 admin.add_view(RegulationView(National, db.session, name="Quản lý quy định"))
-admin.add_view(StatsView(name="Thống kê"))
+admin.add_view(EmployeeAccountView(User, db.session, name="Quản lý tài khoản"))
+admin.add_view(StatsView(name="Thống kê báo cáo"))
 admin.add_view(LogoutView(name='Đăng xuất'))
 
 

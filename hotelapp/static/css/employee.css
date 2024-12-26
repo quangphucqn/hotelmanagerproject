@@ -1,0 +1,15 @@
+
+.modal-header {
+    background-color: #007bff;
+    color: white;
+}
+
+.modal-footer .btn-primary {
+    background-color: #007bff;
+    border: none;
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: bold;
+}

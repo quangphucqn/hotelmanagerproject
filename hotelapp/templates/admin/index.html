@@ -11,27 +11,7 @@
     <script src="{{ url_for('static', filename='js/spinner.js') }}" type="text/javascript"></script>
     <script type="text/javascript" src="https://itexpress.vn/API/files/it.snow.js"></script>
 {% endblock tail_js %}
-{% block menu_links %}
-<ul class="nav navbar-nav navbar-right">
-    <!-- Các menu hiện có -->
-    {{ layout.menu_links() }}
 
-    <!-- Thông tin người dùng -->
-    {% if current_user.is_authenticated %}
-            <li class="nav-item" style="display: flex; align-items: center; justify-content: space-between; padding: 0 10px;">
-                <div style="display: flex; align-items: center; gap: 10px;margin-right:20px">
-            {% if current_user.avatar %}
-                     <img src="{{ url_for('static', filename='images/admin.jpg') }}" class="rounded-circle" width="30" alt="{{ current_user.name }}"
-                        style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;">
-            {% else %}
-                    <img src="{{ url_for('static', filename='images/default.jpg') }}" class="rounded-circle" width="30" alt="{{ current_user.name }}"
-                 style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid #fff;">
-            {% endif %}
-                    <span style="font-size: 16px; font-weight: bold; color: #33ccff; font-family:monospace; margin-left: 8px;">{{ current_user.username }}</span>
-                </div>
-    {% endif %}
-</ul>
-{% endblock %}
 
 {% block body %}
     <body>

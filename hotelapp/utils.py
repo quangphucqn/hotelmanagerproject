@@ -1,11 +1,10 @@
 from hotelapp import app, db
 from flask import current_app
-from hotelapp.models import User, Room, RoomType, RoomStatus, UserRole, National, BookingNote, BookingNoteDetails, Bill, \
-    RentalNote
+from hotelapp.models import User, Room, RoomType,UserRole, National, BookingNote, BookingNoteDetails, Bill,  RentalNote
 from flask_login import current_user
 from flask import render_template, session, redirect, url_for, flash, request
 from datetime import datetime, timedelta
-import os, ezgmail,locale
+import os,locale
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from sqlalchemy import func
@@ -85,31 +84,18 @@ def get_rooms():
     return (db.session.query(
         Room.id,
         RoomType.room_type_name,
-        RoomStatus.status_name,
         RoomType.price
     ).join(RoomType, Room.room_type_id == RoomType.id) \
-            .join(RoomStatus, Room.room_status_id == RoomStatus.id) \
             .join(National, BookingNote.national_id == National.id).all())
 
 
 # Phần phòng + loại phòng
 
-def get_quantity_RoomType(room_id):
-    query = db.session.query(RoomType.id, RoomType.room_type_name, Room.max_people) \
-        .join(Room, Room.room_type_id.__eq__(RoomType.id)).filter(Room.id.__eq__(room_id)).first()
-
-    soluong = query.max_people
-
-    return soluong
-
 
 # Đưa ra danh sách phòng
 def room_list():
-    # Join bảng room với room_type và room_status
-    rooms = db.session.query(Room, RoomType, RoomStatus).join(
+    rooms = db.session.query(Room, RoomType).join(
         RoomType, Room.room_type_id == RoomType.id
-    ).join(
-        RoomStatus, Room.room_status_id == RoomStatus.id
     ).all()
     return rooms
 
@@ -122,11 +108,10 @@ def find_room(checkin_date, checkout_date, num_rooms_requested):
         RoomType.id,
         RoomType.room_type_name,
         RoomType.price,
+        RoomType.image,
         func.count(Room.id).label('available_count')
     ).join(
         Room, Room.room_type_id == RoomType.id
-    ).join(
-        RoomStatus, Room.room_status_id == RoomStatus.id
     ).filter(
         ~db.session.query(BookingNoteDetails).filter(
             BookingNoteDetails.room_id == Room.id,
@@ -137,7 +122,7 @@ def find_room(checkin_date, checkout_date, num_rooms_requested):
 
     # Lọc các loại phòng có đủ số lượng phòng trống
     available_room_types = [
-        {'id': rt.id, 'name': rt.room_type_name, 'price': rt.price, 'available_count': rt.available_count}
+        {'id': rt.id, 'name': rt.room_type_name, 'price': rt.price,'image':rt.image, 'available_count': rt.available_count}
         for rt in room_counts if rt.available_count >= num_rooms_requested
     ]
 
@@ -232,8 +217,9 @@ def send_email(to_email, customer_name, cart, total_price, phone_number):
             subject=subject,
             html_content=content
         )
-        # điền api key để gửi mail
 
+        #chỗ này điền api key để gửi mail
+        
         response = sg.send(message)
         print(f"Email sent! Status Code: {response.status_code}")
     except Exception as e:
@@ -279,72 +265,103 @@ def grand_total_revenue(from_date=None, to_date=None):
 
 
 # Thống kê doanh thu theo tháng
-def monthly_revenue_report(from_date=None, to_date=None):
-    from_date = convert_to_date(from_date)
-    to_date = convert_to_date(to_date)
-
+def monthly_revenue_report(year=None, room_type_id=None):
     query = db.session.query(
-        RoomType.room_type_name,
-        func.sum(Bill.total_cost).label('total_cost'),
-        func.count(BookingNoteDetails.id).label('total_bookings')
-    ).join(Room, RoomType.id == Room.room_type_id
-           ).join(BookingNoteDetails, Room.id == BookingNoteDetails.room_id
-                  ).join(BookingNote, BookingNoteDetails.booking_note_id == BookingNote.id
-                         ).join(RentalNote, BookingNote.id == RentalNote.booking_note_id
-                                ).join(Bill, RentalNote.id == Bill.rental_note_id)
+            extract('month', Bill.created_date).label('month'),
+            RoomType.room_type_name.label('room_type_name'),
+            func.sum(Bill.total_cost).label('total_revenue'),
+            func.count(BookingNoteDetails.id).label('total_bookings')
+        ).select_from(Bill)  # Xác định bảng gốc bắt đầu từ Bill
 
-    query = apply_date_filters(query, from_date, to_date)
+    query = query.join(RentalNote, RentalNote.id == Bill.rental_note_id)
+    query = query.join(BookingNote, BookingNote.id == RentalNote.booking_note_id)
+    query = query.join(BookingNoteDetails, BookingNoteDetails.booking_note_id == BookingNote.id)
+    query = query.join(Room, Room.id == BookingNoteDetails.room_id)
+    query = query.join(RoomType, RoomType.id == Room.room_type_id)
 
-    query = query.group_by(RoomType.room_type_name).order_by(RoomType.room_type_name)
+        # Lọc theo năm
+    if year:
+         query = query.filter(extract('year', Bill.created_date) == year)
 
+        # Lọc theo loại phòng
+    if room_type_id:
+        query = query.filter(RoomType.id == room_type_id)
+
+    # Nhóm theo tháng và loại phòng
+    query = query.group_by(extract('month', Bill.created_date), RoomType.room_type_name).order_by(extract('month', Bill.created_date))
+
+    # Lấy kết quả
     result = query.all()
-    grand_cost = sum(r.total_cost for r in result)
+
+    # Tính tổng doanh thu toàn bộ
+    grand_cost = sum(r.total_revenue for r in result)
+
+    # Kết quả chi tiết theo tháng và loại phòng
     result_with_total_cost = [
         {
+            'month': int(r.month),
             'room_type_name': r.room_type_name,
-            'total_revenue': r.total_cost,
-            'total_bookings': r.total_bookings,
-            'total_cost_times_bookings': grand_total_revenue(from_date, to_date)
+            'total_revenue': r.total_revenue,
+            'total_bookings': r.total_bookings
         }
         for r in result
-    ]
+        ]
+
     return result_with_total_cost, grand_cost
 
+def usage_density_report(year=None, room_type_id=None):
 
-# Thống kê mật độ sử dụng phòng
-def usage_density_report(from_date=None, to_date=None):
-    # Truy vấn tổng số ngày thuê của tất cả các loại phòng
+    # Lọc theo năm (mặc định là năm hiện tại nếu không truyền)
+    if not year:
+        year = datetime.now().year
+
+    # Truy vấn tổng số ngày thuê của tất cả các phòng trong năm (kiểm tra cả checkin và checkout date)
     total_days_rented_query = db.session.query(
         func.sum(func.datediff(BookingNoteDetails.checkout_date, BookingNoteDetails.checkin_date)).label(
             'total_days_rented')
     ).join(Room, Room.id == BookingNoteDetails.room_id
     ).join(RoomType, Room.room_type_id == RoomType.id
     ).join(BookingNote, BookingNoteDetails.booking_note_id == BookingNote.id
-    ).join(RentalNote, BookingNote.id == RentalNote.booking_note_id)
+    ).join(RentalNote, BookingNote.id == RentalNote.booking_note_id
+    ).filter(
+        (func.year(BookingNoteDetails.checkin_date) == year) |
+        (func.year(BookingNoteDetails.checkout_date) == year)
+    )
 
-    total_days_rented_query = apply_date_filters(total_days_rented_query, from_date, to_date)
+    # Nếu có room_type_id, lọc theo loại phòng
+    if room_type_id:
+        total_days_rented_query = total_days_rented_query.filter(RoomType.id == room_type_id)
 
-    total_days_rented = total_days_rented_query.scalar() or 0  # Cung cấp giá trị mặc định là 0 nếu không có dữ liệu
+    total_days_rented = total_days_rented_query.scalar() or 0  # Giá trị mặc định là 0 nếu không có dữ liệu
 
-    # Truy vấn lấy thông tin loại phòng và số ngày thuê
+    # Truy vấn thông tin mật độ sử dụng phòng theo tháng (kiểm tra cả checkin và checkout date)
     query = db.session.query(
+        func.month(BookingNoteDetails.checkin_date).label('month'),
         RoomType.room_type_name,
         func.sum(func.datediff(BookingNoteDetails.checkout_date, BookingNoteDetails.checkin_date)).label(
             'total_days_rented')
     ).join(Room, RoomType.id == Room.room_type_id
            ).join(BookingNoteDetails, Room.id == BookingNoteDetails.room_id
                   ).join(BookingNote, BookingNoteDetails.booking_note_id == BookingNote.id
-                         ).join(RentalNote, BookingNote.id == RentalNote.booking_note_id)
+                         ).join(RentalNote, BookingNote.id == RentalNote.booking_note_id
+                                ).filter(
+        (func.year(BookingNoteDetails.checkin_date) == year) |
+        (func.year(BookingNoteDetails.checkout_date) == year)
+    )
 
-    query = apply_date_filters(query, from_date, to_date)
+    # Nếu có room_type_id, lọc theo loại phòng
+    if room_type_id:
+        query = query.filter(RoomType.id == room_type_id)
 
-    query = query.group_by(RoomType.room_type_name).order_by(RoomType.room_type_name)
+    query = query.group_by(func.month(BookingNoteDetails.checkin_date), RoomType.room_type_name
+                           ).order_by(func.month(BookingNoteDetails.checkin_date), RoomType.room_type_name)
 
     result = query.all()
 
-    # Tính tỷ lệ thuê phòng so với các loại phòng khác trong Python
+    # Tính tỷ lệ thuê phòng theo tháng
     result_with_usage_rate = [
         {
+            'month': r.month,
             'room_type_name': r.room_type_name,
             'total_days_rented': r.total_days_rented,
             'usage_rate': round((r.total_days_rented / total_days_rented * 100), 2) if total_days_rented else 0
@@ -355,10 +372,6 @@ def usage_density_report(from_date=None, to_date=None):
     return result_with_usage_rate
 
 
-if __name__ == '__main__':
-    with app.app_context():
-        print(monthly_revenue_report())
-        print(usage_density_report())
 
 
 def create_booking_note(customer_name, phone_number, cccd, email, national_id, user_id):
@@ -401,7 +414,7 @@ def find_booking_note(customer_name, phone_number):
         .filter(
             BookingNote.customer_name == customer_name,
             BookingNote.phone_number == phone_number,
-            # BookingNote.created_date >= datetime.now() - timedelta(days=28),
+            BookingNote.created_date >= datetime.now() - timedelta(days=28),
             BookingNote.rental_notes == None,  # Loại bỏ các BookingNote đã có RentalNote
             BookingNote.rooms!=None
         )
@@ -535,3 +548,9 @@ def add_bill(rental_note_id):
         db.session.add(bill)
         db.session.commit()
         return bill
+
+if __name__ == '__main__':
+    with app.app_context():
+        print(monthly_revenue_report())
+        print(usage_density_report())
+        print(add_bill(5))
