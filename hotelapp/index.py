@@ -20,9 +20,8 @@ import random
 from payos import PaymentData, ItemData, PayOS
 
 
-
-
-
+payOS = PayOS(client_id='a52ca026-fb4a-4686-a3f3-f627aab08028', api_key='af29b70b-ccb8-44f7-acee-32ad39d4c999',
+              checksum_key='95cdb3212b11fc888e83ba6d965ff5dfb3825af1c6f8a39d2141c479d236c49a')
 # Trang chủ
 @app.route('/')
 def home():
